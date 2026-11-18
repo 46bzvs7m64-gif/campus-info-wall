@@ -399,7 +399,7 @@ function seedItems(){
     {id:'d9', type:'lost', title:'一教丢了深灰色双肩包，里面有课本和充电器', desc:'昨天下午在一教 201 上完课忘了拿，包里有一本《计算机网络》和一个 65W 充电器。\n书上有名字，麻烦捡到的同学联系我。', area:'一教 201', contact:'微信 bag_lost', createdAt:now-40*H, views:58, contacts:7, status:'open', author:'林同学', ownerId:'demo9', seed:true, imgs:['img/backpack.jpg']},
     {id:'d10', type:'sell', title:'机械键盘 87 键，红轴，120', price:'120', desc:'换了新键盘，这个闲置。键帽有轻微使用痕迹，功能全部正常，送拔键器。', area:'北区 1 栋', contact:'QQ 991203', createdAt:now-3.2*D, views:45, contacts:5, status:'open', author:'郑同学', ownerId:'demo10', seed:true, imgs:['img/keyboard.jpg']},
     {id:'d11', type:'sell', title:'20 寸登机箱，万向轮很顺，80 出', price:'80', desc:'去年买的，只用过一次回家。拉杆没松，内衬也干净。\n东区 5 栋楼下自取。', area:'东区 5 栋', contact:'微信 case80', createdAt:now-6*H, views:73, contacts:9, status:'open', author:'何同学', ownerId:'demo11', seed:true, imgs:['img/suitcase.jpg']},
-    {id:'d12', type:'sell', title:'电热水壶 1.5L，烧水快，20', price:'20', desc:'寝室换了饮水机，这个闲置。壶底有一点水垢，洗一下就好。', area:'西区 3 栋', contact:'QQ 512884', createdAt:now-26*H, views:41, contacts:5, status:'open', author:'孙同学', ownerId:'demo12', seed:true, imgs:['img/kettle.jpg']},
+    {id:'d12', type:'pin', title:'泡面拼单，一箱 24 包吃不完，一人一半', price:'15', need:2, joined:1, until:now+10*H, desc:'超市整箱买便宜一半，我一次吃不完。\n一人 12 包，口味可以各挑一种，明晚到货。', area:'西区 3 栋', contact:'QQ 512884', createdAt:now-26*H, views:41, contacts:5, status:'open', author:'孙同学', ownerId:'demo12', seed:true, imgs:['img/noodles.jpg']},
     {id:'d13', type:'sell', title:'吹风机，负离子，宿舍能用，35', price:'35', desc:'功率 1200W，宿舍不跳闸。线有点长，收的时候要缠一下。', area:'南区 2 栋', contact:'微信 dry35', createdAt:now-9*H, views:66, contacts:8, status:'open', author:'赵同学', ownerId:'demo13', seed:true, imgs:['img/hairdryer.jpg']},
     {id:'d14', type:'sell', title:'24 寸显示器，1080p，毕业出 260', price:'260', desc:'屏幕没有坏点，带一根 HDMI 线和原装支架。宿舍桌上用刚好。', area:'北区 4 栋', contact:'微信 mon260', createdAt:now-2.4*D, views:152, contacts:17, status:'open', author:'郭同学', ownerId:'demo14', seed:true, imgs:['img/monitor.jpg']},
     {id:'d15', type:'sell', title:'无线鼠标，静音，20', price:'20', desc:'换了新鼠标，这个还能用，左键有一点磨光。送一节电池。', area:'图书馆', contact:'QQ 334518', createdAt:now-14*H, views:38, contacts:4, status:'open', author:'马同学', ownerId:'demo15', seed:true, imgs:['img/mouse.jpg']},
@@ -447,7 +447,30 @@ function seedItems(){
     {id:'d59', type:'lost', title:'操场看台丢了一个玻璃随行杯', desc:'杯身有红色的盖子，晚上看比赛时放在台阶上忘了拿。\n杯子不贵，主要是用习惯了。', area:'操场看台', contact:'微信 cup_lost', createdAt:now-1.1*D, views:22, contacts:2, status:'open', author:'施同学', ownerId:'demo59', seed:true, imgs:['img/thermalcup.jpg']},
     {id:'d60', type:'lost', title:'图书馆 5 楼丢了一台笔记本，银色', desc:'晚上闭馆前走的急，落在靠里的位置。电脑包是灰色的，里面有充电器。\n已经报给管理员了，如果有同学看到请留言。', area:'图书馆 5 楼', contact:'电话 135****4412', createdAt:now-38*H, views:89, contacts:12, status:'open', author:'吕同学', ownerId:'demo60', seed:true, imgs:['img/laptop.jpg']}
   ];
-  return base.concat(extraItems());
+  return spreadDates(base.concat(extraItems()));
+}
+
+/* 把种子内容的发布时间打散到 9 月 1 日至今，而不是全挤在"今天"。
+   规则：约 1/6 落在最近 48 小时（保证首页有"几小时前"的新内容、今日新增不为 0），
+   其余在 9/1 到今天之间均匀随机，小时数也随机，看起来像真实使用了一整个学期。
+   想往后延就把 SEED_FROM 往前提、或等真实日期走过 12 月后自然覆盖。 */
+function spreadDates(list){
+  var end = Date.now();
+  var start = new Date(2026, 8, 1).getTime();          // 2026-09-01
+  var tail = end - 7 * 86400e3;                        // 最近 7 天单独安排
+  var span = Math.max(86400e3, tail - start);
+  list.forEach(function(it, i){
+    var t;
+    if (i % 12 === 0){
+      t = end - Math.random() * 2 * 86400e3;                 // 最近两天，约 9 条
+    } else if (i % 12 === 1){
+      t = end - (2 + Math.random() * 5) * 86400e3;           // 这两三天，约 9 条
+    } else {
+      t = start + Math.random() * span;                      // 9 月以来均匀分布
+    }
+    it.createdAt = Math.floor(t);
+  });
+  return list;
 }
 
 /* ---------- 路由 ---------- */
