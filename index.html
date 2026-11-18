@@ -508,8 +508,10 @@ function heroHome(){
 }
 
 function thumbHtml(it){
-  var img = (it.imgs && it.imgs.length)
-    ? '<img src="'+esc(it.imgs[0])+'" alt="" loading="lazy" onerror="this.remove()">' : '';
+  /* 列表只用 200px 的小图（img/t/），详情页才加载原图：弱网下首屏不至于全是灰块 */
+  var src = (it.imgs && it.imgs.length) ? it.imgs[0] : '';
+  if (src.indexOf('img/') === 0) src = src.replace('img/', 'img/t/');
+  var img = src ? '<img src="'+esc(src)+'" alt="" loading="lazy" onerror="this.remove()">' : '';
   return '<div class="thumb">'+ico('image')+img+'</div>';
 }
 
