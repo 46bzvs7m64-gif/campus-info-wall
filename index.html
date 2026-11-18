@@ -1,0 +1,1102 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#5B6CFF">
+<title>校园信息墙 · 失物招领 & 二手转让</title>
+<style>
+  :root{
+    --bg:#F1F2F4; --card:#fff; --ink:#1B1E23; --sub:#8B9099; --line:#EAECEF;
+    --p1:#2C6BE0; --p2:#2C6BE0;
+    --lost:#D9622B; --lost-bg:#FBF0EA; --sell:#2C6BE0; --sell-bg:#EDF2FC;
+    --price:#E24B2E;
+    --ok:#1F9254; --warn:#8A9099;
+    --r:6px;
+    --shadow:none;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font:14.5px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:520px;margin:0 auto;min-height:100vh;padding-bottom:56px;position:relative;background:var(--bg)}
+  a{color:inherit;text-decoration:none}
+  button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+  input,textarea,select{font:inherit}
+
+  /* ---------- 通用按钮 ---------- */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;height:36px;padding:0 14px;border-radius:5px;
+       font-size:14px;font-weight:500;background:var(--p1);color:#fff;transition:opacity .12s}
+  .btn:active{opacity:.82}
+  .btn.ghost{background:#fff;color:var(--ink);border:1px solid #DCDFE4}
+  .btn.line{background:#fff;color:#333;border:1px solid #DCDFE4}
+  .btn.danger{background:#fff;color:#D93A2B;border:1px solid #E9B6AF}
+  .btn.sm{height:29px;padding:0 10px;font-size:12.5px;border-radius:4px}
+  .btn.wide{width:100%;height:44px;border-radius:5px;font-size:15px}
+
+  /* ---------- 顶部 ---------- */
+  .hero{padding:0 0 6px;background:var(--bg)}
+  .hero-in{position:relative;background:#fff;padding:12px 12px 0;border-bottom:1px solid var(--line)}
+  .hero-top{display:flex;align-items:center;gap:8px}
+  .hero-top .nm{font-size:17px;font-weight:600;letter-spacing:0;color:#17191D}
+  .hero-top .sp{flex:1}
+  .hero-sub{font-size:12px;color:var(--sub);margin-top:4px}
+  .pill{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 9px;border-radius:4px;
+        background:#fff;border:1px solid #E3E6EA;font-size:12.5px;color:#4A5058}
+  .srch{margin-top:10px;display:flex;align-items:center;gap:7px;background:#F4F5F7;border:1px solid #EDEFF2;border-radius:5px;padding:0 10px;height:36px}
+  .srch svg{flex:0 0 auto;opacity:.42}
+  .srch input{flex:1;border:0;outline:none;background:none;font-size:14px;color:var(--ink);min-width:0}
+  .tabs{display:flex;gap:0;margin-top:8px;background:none;padding:0;border:0;border-bottom:0}
+  .tab{flex:1;height:38px;border-radius:0;font-size:14px;font-weight:400;color:#5E646D;position:relative}
+  .tab.on{color:#17191D;font-weight:600}
+  .tab.on:after{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:0;width:26px;height:2px;background:var(--p1);border-radius:2px}
+  .notice{margin:0 -12px;padding:7px 12px;background:#FCFCFD;border-top:1px solid var(--line);font-size:11.5px;color:#9AA0A8;line-height:1.6}
+
+  /* ---------- 普通页头 ---------- */
+  .hd{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line)}
+  .hd-in{display:flex;align-items:center;gap:10px;padding:9px 12px}
+  .hd-in .ttl{font-weight:600;font-size:15.5px}
+  .grow{flex:1}
+
+  /* ---------- 列表 ---------- */
+  .list{padding:0;background:#fff;display:block}
+  .card{position:relative;background:#fff;border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;
+        padding:12px;display:flex;gap:10px;align-items:flex-start;transition:none}
+  .thumb{position:relative;width:64px;height:64px;border-radius:4px;flex:0 0 auto;overflow:hidden;display:grid;place-items:center;font-size:22px;
+         background:#F2F3F5;border:1px solid #EFF0F2}
+  .thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .thumb svg{width:22px;height:22px;color:#CBCFD6}
+  .c-main{flex:1;min-width:0}
+  .c-top{display:flex;align-items:center;gap:5px;margin-bottom:3px;flex-wrap:wrap}
+  .tag{font-size:10.5px;font-weight:500;line-height:1.6;padding:1px 5px;border-radius:2px;letter-spacing:0;border:1px solid transparent}
+  .tag.lost{color:var(--lost);background:var(--lost-bg);border-color:#F3DDD0}
+  .tag.sell{color:var(--sell);background:var(--sell-bg);border-color:#DEE8F9}
+  .tag.done{color:#6B7079;background:#F1F2F4;border-color:#E9EBEE}
+  .c-title{font-size:15px;font-weight:400;line-height:1.45;color:#22262B;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .c-meta{margin-top:5px;font-size:12px;color:#9AA0A8;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .c-meta i{font-style:normal}
+  .fav-mini{margin-left:auto;height:23px;padding:0 8px;border-radius:3px;background:#fff;border:1px solid #DFE3E8;color:#5E646D;
+            font-size:11.5px;font-weight:400;white-space:nowrap}
+  .fav-mini:active{background:#F4F5F7}
+  .price{margin-left:auto;font-weight:600;font-size:15px;color:var(--price);white-space:nowrap}
+  .empty{text-align:center;padding:56px 24px;color:#9AA0A8;font-size:13.5px;line-height:1.9}
+  .empty .ic{font-size:30px;display:block;margin-bottom:10px;opacity:.35}
+  .sec-t{display:flex;align-items:center;gap:8px;padding:12px 12px 8px;font-size:12.5px;font-weight:400;color:#8B9099;letter-spacing:0;text-transform:none;background:var(--bg)}
+
+  /* ---------- 详情 ---------- */
+  .wrap{padding:0 0 8px}
+  .panel{background:#fff;border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;padding:14px 12px}
+  .cover{position:relative;border-radius:0;overflow:hidden;margin-bottom:8px;background:#FAFBFC;border-bottom:1px solid var(--line)}
+  .cover img{display:block;width:100%;max-height:300px;object-fit:contain;background:#FAFBFC}
+  .d-title{font-size:17px;font-weight:600;line-height:1.45;margin:6px 0 0;color:#17191D}
+  .d-price{margin-top:6px;font-weight:600;font-size:20px;color:var(--price)}
+  .d-imgs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:12px}
+  .d-imgs img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:3px;background:#F2F3F5}
+  .d-desc{margin-top:12px;font-size:14.5px;color:#3A3F45;white-space:pre-wrap;line-height:1.75}
+  .kv{margin-top:14px;border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px;font-size:13px;color:#5E646D}
+  .kv div{display:flex;gap:10px}
+  .kv span:first-child{width:58px;color:#9AA0A8;flex:0 0 auto}
+  .contact-box{margin-top:14px;background:#FAFBFC;border:1px solid #E9EBEE;border-radius:4px;padding:12px;text-align:center}
+  .contact-box .num{font-size:16px;font-weight:600;margin:4px 0 10px;word-break:break-all}
+  .bar-b{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:8px 12px calc(8px + env(safe-area-inset-bottom));display:flex;gap:8px;max-width:520px;margin:0 auto;z-index:30}
+  .fav-btn{width:48px;height:42px;border-radius:4px;border:1px solid #DCDFE4;background:#fff;display:grid;place-items:center;font-size:18px;flex:0 0 auto}
+  .fav-btn.on{background:#FDF2F0;border-color:#F2CFC7}
+
+  /* ---------- 表单 ---------- */
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:13px;font-weight:400;color:#5E646D;margin-bottom:6px}
+  .field input,.field textarea,.field select{width:100%;border:1px solid #DCDFE4;border-radius:4px;background:#fff;padding:10px 11px;font-size:14.5px;outline:none}
+  .field textarea{min-height:96px;resize:vertical;line-height:1.7}
+  .field input:focus,.field textarea:focus{border-color:#9DB6E8;box-shadow:0 0 0 3px rgba(44,107,224,.08)}
+  .seg{display:flex;gap:6px}
+  .seg button{flex:1;height:40px;border-radius:4px;border:1px solid #DCDFE4;background:#fff;font-size:14px;font-weight:400;color:#5E646D}
+  .seg button.on.lost{border-color:#D9622B;color:#C25521;background:#FBF0EA}
+  .seg button.on.sell{border-color:#2C6BE0;color:#2459BC;background:#EDF2FC}
+  .up{display:flex;gap:8px;flex-wrap:wrap}
+  .up label{width:68px;height:68px;border-radius:4px;border:1px dashed #D3D7DD;display:grid;place-items:center;font-size:20px;color:#A6ACB5;background:#FAFBFC;cursor:pointer;position:relative;overflow:hidden}
+  .up label img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .up input{display:none}
+  .hint{font-size:12px;color:#9AA0A8;margin-top:6px;line-height:1.7}
+
+  /* ---------- 账号 ---------- */
+  .auth{padding:14px 12px}
+  .auth .box{background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:none;padding:18px}
+  .auth h2{margin:0 0 4px;font-size:18px;font-weight:600}
+  .auth .sb{color:#9AA0A8;font-size:12.5px;margin:0 0 16px}
+  .switch{display:flex;background:#F2F3F5;border-radius:4px;padding:3px;margin-bottom:16px}
+  .switch button{flex:1;height:32px;border-radius:3px;font-size:13.5px;font-weight:400;color:#5E646D}
+  .switch button.on{background:#fff;color:#17191D;font-weight:600;border:1px solid #E4E6EA}
+  .avatar{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-size:20px;font-weight:500;color:#404652;
+          background:#EAEDF1;border:1px solid #E1E4E9}
+
+  /* ---------- 后台 ---------- */
+  .kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:10px 12px 8px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:5px;padding:12px}
+  .kpi .n{font-size:23px;font-weight:600;letter-spacing:0;font-variant-numeric:tabular-nums;color:#17191D}
+  .kpi .l{font-size:12px;color:#8B9099;margin-top:1px}
+  .kpi.hl{background:#fff;color:#17191D;border:1px solid var(--line)}
+  .kpi.hl .n{color:var(--p1)}
+  .kpi.hl .l{color:#8B9099}
+  .frow{display:flex;align-items:center;gap:8px;margin-bottom:9px;font-size:12.5px}
+  .frow .lb{width:64px;color:#5E646D;flex:0 0 auto}
+  .frow .tr{flex:1;height:18px;background:#F1F2F4;border-radius:2px;overflow:hidden}
+  .frow .fl{height:100%;border-radius:2px;background:#5B8AE0;transition:width .4s}
+  .frow .vl{width:52px;text-align:right;font-variant-numeric:tabular-nums;color:#3A3F45;font-weight:500;flex:0 0 auto}
+  .trend{display:flex;align-items:flex-end;gap:3px;height:96px;margin-top:8px}
+  .trend i{flex:1;background:#D5DEEF;border-radius:1px 1px 0 0;min-height:2px;position:relative}
+  .trend i.hi{background:#4C7FD6}
+  .tlabels{display:flex;gap:3px;margin-top:5px;font-size:9px;color:#A6ACB5}
+  .tlabels span{flex:1;text-align:center;overflow:hidden;white-space:nowrap}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th{text-align:left;color:#8B9099;font-weight:400;font-size:11.5px;padding:7px 4px;border-bottom:1px solid var(--line);white-space:nowrap;background:#FAFBFC}
+  td{padding:8px 4px;border-bottom:1px solid #F1F2F4;font-variant-numeric:tabular-nums;color:#3A3F45}
+  tr:last-child td{border-bottom:0}
+  .row-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;padding:0 12px}
+  .admin .hint{padding-left:12px;padding-right:12px}
+  .row2{display:flex;gap:8px;padding:10px 12px;background:#fff;border-bottom:1px solid var(--line)}
+  .acts{display:flex;flex-direction:column;gap:5px;margin-left:2px}
+  .acts .btn{height:26px;font-size:12px;padding:0 9px;border-radius:4px}
+
+  /* ---------- 底部导航 ---------- */
+  .nav{position:fixed;left:0;right:0;bottom:0;max-width:520px;margin:0 auto;background:#fff;
+       border-top:1px solid var(--line);display:flex;z-index:40;padding-bottom:env(safe-area-inset-bottom)}
+  .nav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 0 6px;font-size:10.5px;color:#8B9099;font-weight:400}
+  .nav a .ic{font-size:17px;line-height:1;display:grid;place-items:center;height:22px}
+  .nav a .ic svg{width:22px;height:22px;display:block}
+  .nav a.on{color:var(--p1)}
+  .toast{position:fixed;left:50%;bottom:76px;transform:translateX(-50%);background:rgba(28,30,34,.9);color:#fff;
+         font-size:13px;padding:9px 16px;border-radius:4px;opacity:0;transition:.2s;pointer-events:none;z-index:99;white-space:nowrap;max-width:88vw}
+  .toast.on{opacity:1}
+  .note{font-size:11.5px;color:#9AA0A8;background:#FAFBFC;border:1px solid #EFF0F2;border-radius:4px;padding:9px 11px;line-height:1.7;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+ * 校园信息墙 v2 · 单文件全栈前端（离线可跑）
+ * 账号 / 收藏 / 我的发布 / 管理员后台 / 埋点 / 渠道归因
+ *
+ * 关于"账号"：这是纯前端实现，账号、收藏、帖子都存在本机
+ * localStorage 里，换设备不同步。它满足的是"同一台设备上，
+ * 不同人登录看到各自的数据"，不是真正的服务端账号。
+ * 真要做跨设备，只需要把下面 DB 的三个方法换成 fetch 接口，
+ * 视图层一行都不用改（见 DB 注释）。
+ * ============================================================ */
+
+/* ---------- 存储层（换后端只改这里） ---------- */
+var DB = {
+  key: function(k){ return 'ciw3_' + k; },
+  get: function(k, d){
+    try { var v = localStorage.getItem(DB.key(k)); return v ? JSON.parse(v) : d; }
+    catch(e){ return d; }
+  },
+  set: function(k, v){
+    try { localStorage.setItem(DB.key(k), JSON.stringify(v)); return true; }
+    catch(e){ toast('本地存储已满，删掉几张图片再试'); return false; }
+  },
+  /* 接入后端时，把 get/set 换成：
+     get: async (k) => (await fetch('/api/' + k)).json()
+     set: async (k, v) => fetch('/api/' + k, {method:'POST', body: JSON.stringify(v)})
+     上层代码不用动。 */
+};
+
+/* ---------- 简易哈希（非安全，仅演示；真实项目请用服务端 bcrypt） ---------- */
+function hash(s){
+  var h = 5381;
+  for (var i = 0; i < s.length; i++) h = ((h << 5) + h) ^ s.charCodeAt(i);
+  return (h >>> 0).toString(16) + '_' + s.length;
+}
+
+/* ---------- 状态 ---------- */
+var state = {
+  users: DB.get('users', null),
+  session: DB.get('session', null),
+  items: DB.get('items', null),
+  favs: DB.get('favs', {}),
+  events: DB.get('events', []),
+  ch: DB.get('ch', null)
+};
+
+var qs = new URLSearchParams(location.search);
+if (qs.get('ch')){ state.ch = String(qs.get('ch')).slice(0,20); DB.set('ch', state.ch); }
+if (!state.ch){ state.ch = 'direct'; DB.set('ch', state.ch); }
+
+/* 首次进入：建管理员账号 + 演示内容 */
+if (!state.users){
+  state.users = [
+    { id:'u_admin', nick:'admin', sid:'2020010101', pass:hash('admin123'), role:'admin', createdAt:Date.now() }
+  ];
+  DB.set('users', state.users);
+}
+if (!state.items){ state.items = seedItems(); DB.set('items', state.items); }
+
+function saveUsers(){ DB.set('users', state.users); }
+function saveItems(){ DB.set('items', state.items); }
+function saveFavs(){ DB.set('favs', state.favs); }
+function saveEvents(){ DB.set('events', state.events); }
+
+/* ---------- 当前用户 ---------- */
+function me(){ 
+  if (!state.session) return null;
+  for (var i=0;i<state.users.length;i++) if (state.users[i].id === state.session) return state.users[i];
+  return null;
+}
+function isAdmin(){ var u = me(); return !!(u && u.role === 'admin'); }
+
+/* ---------- 收藏（按账号存，一人一条只算一次） ---------- */
+function myFavs(){ var u = me(); return u ? (state.favs[u.id] || []) : []; }
+function isFav(id){ return myFavs().indexOf(id) >= 0; }
+function toggleFav(id){
+  var u = me(); if (!u) return false;
+  var arr = state.favs[u.id] || (state.favs[u.id] = []);
+  var i = arr.indexOf(id);
+  if (i >= 0){ arr.splice(i,1); }
+  else { arr.unshift(id); }
+  state.favs[u.id] = arr;
+  saveFavs();
+  return i < 0;
+}
+function favCount(id){
+  var n = 0;
+  for (var k in state.favs){ if (state.favs[k].indexOf(id) >= 0) n++; }
+  return n;
+}
+
+/* ---------- 埋点 ---------- */
+function track(ev, id){
+  var u = me();
+  state.events.push({ t:Date.now(), ev:ev, id:id||'', uid:u?u.id:'guest', ch:state.ch });
+  if (state.events.length > 20000) state.events = state.events.slice(-20000);
+  saveEvents();
+}
+
+/* ---------- 工具 ---------- */
+function $(s){ return document.querySelector(s); }
+function esc(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function ago(t){
+  var d = Date.now() - t;
+  if (d < 60e3) return '刚刚';
+  if (d < 3600e3) return Math.floor(d/60e3) + ' 分钟前';
+  if (d < 86400e3) return Math.floor(d/3600e3) + ' 小时前';
+  if (d < 7*86400e3) return Math.floor(d/86400e3) + ' 天前';
+  var x = new Date(t); return (x.getMonth()+1) + '月' + x.getDate() + '日';
+}
+function dayKey(t){ var d = new Date(t); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+var toastTimer;
+function toast(msg){
+  var el = $('#toast'); el.textContent = msg; el.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ el.classList.remove('on'); }, 1900);
+}
+function go(h){ location.hash = h; }
+function pct(a,b){ return b ? Math.round(a/b*1000)/10 : 0; }
+
+/* ---------- 初始内容（30 条）
+   图片是网上公开的实物照片，只放本地 img/ 目录；正式上线请换成自己拍的或已获授权的图。
+   接后端后这段可以整段删掉，改成从接口拉列表。 ---------- */
+function seedItems(){
+  var now = Date.now(), H = 3600e3, D = 86400e3;
+  return [
+    {id:'d1', type:'lost', title:'三教 302 丢了一把黑色雨伞，伞柄有小熊挂件', desc:'周三下午上完高数忘在教室了。伞是家里带的，不太值钱但用了很久。\n捡到的同学麻烦联系我，请你喝奶茶。', area:'三教 302', contact:'微信 xiaoyu_0312', createdAt:now-3*H, views:42, contacts:5, status:'open', author:'匿名同学', ownerId:'demo1', seed:true, imgs:['img/umbrella.jpg']},
+    {id:'d2', type:'lost', title:'图书馆 4 楼捡到一张校园卡，姓名王**', desc:'卡面有一点点磨损，已经在图书馆一楼服务台登记了，也可以直接联系我。\n失主认领时说一下学号后四位。', area:'图书馆 4 楼', contact:'QQ 774512', createdAt:now-8*H, views:76, contacts:11, status:'done', author:'李同学', ownerId:'demo2', seed:true, imgs:['img/card.jpg']},
+    {id:'d3', type:'lost', title:'找一只 AirPods 右耳，操场看台附近', desc:'晚上跑步的时候掉的，充电盒还在。如果有人捡到，重谢。', area:'操场看台', contact:'电话 138****6621', createdAt:now-1.2*D, views:33, contacts:2, status:'open', author:'匿名同学', ownerId:'demo3', seed:true, imgs:['img/airpods.jpg']},
+    {id:'d4', type:'sell', title:'九成新自行车，毕业出，150', price:'150', desc:'骑了一年多，刹车和链条上个月刚保养过。送车锁和打气筒。\n南门自提，可以先来看车。', area:'南门', contact:'微信 bike_sell_9', createdAt:now-5*H, views:128, contacts:19, status:'open', author:'张同学', ownerId:'demo4', seed:true, imgs:['img/bike.jpg']},
+    {id:'d5', type:'sell', title:'考研数学全套资料（张宇 + 660 题），30 打包', price:'30', desc:'笔记做得比较全，重点都标了。书有点旧但不缺页。', area:'东区宿舍', contact:'QQ 2288391', createdAt:now-30*H, views:64, contacts:8, status:'done', author:'陈同学', ownerId:'demo5', seed:true, imgs:['img/books.jpg']},
+    {id:'d6', type:'sell', title:'宿舍小冰箱，50 出，能制冷', price:'50', desc:'搬宿舍带不走，制冷正常，就是压缩机有点吵。二楼自提，需要两个人抬。', area:'西区 6 栋', contact:'微信 fridge50', createdAt:now-2.1*D, views:51, contacts:6, status:'open', author:'匿名同学', ownerId:'demo6', seed:true, imgs:['img/fridge.jpg']},
+    {id:'d7', type:'sell', title:'护眼台灯，三档调光，25', price:'25', desc:'用了半年，灯管没坏，就是外壳有点灰。可以插充电宝用。', area:'东区 3 栋', contact:'微信 lamp_25', createdAt:now-1.4*D, views:22, contacts:3, status:'open', author:'周同学', ownerId:'demo7', seed:true, imgs:['img/lamp.jpg']},
+    {id:'d8', type:'sell', title:'人体工学椅，毕业清仓 80', price:'80', desc:'坐着挺舒服，网面有一点塌但不影响。宿舍楼下手提，能拆靠背。', area:'西区 2 栋', contact:'微信 chair80', createdAt:now-2.6*D, views:37, contacts:4, status:'open', author:'吴同学', ownerId:'demo8', seed:true, imgs:['img/chair.jpg']},
+    {id:'d9', type:'lost', title:'一教丢了深灰色双肩包，里面有课本和充电器', desc:'昨天下午在一教 201 上完课忘了拿，包里有一本《计算机网络》和一个 65W 充电器。\n书上有名字，麻烦捡到的同学联系我。', area:'一教 201', contact:'微信 bag_lost', createdAt:now-40*H, views:58, contacts:7, status:'open', author:'林同学', ownerId:'demo9', seed:true, imgs:['img/backpack.jpg']},
+    {id:'d10', type:'sell', title:'机械键盘 87 键，红轴，120', price:'120', desc:'换了新键盘，这个闲置。键帽有轻微使用痕迹，功能全部正常，送拔键器。', area:'北区 1 栋', contact:'QQ 991203', createdAt:now-3.2*D, views:45, contacts:5, status:'open', author:'郑同学', ownerId:'demo10', seed:true, imgs:['img/keyboard.jpg']},
+    {id:'d11', type:'sell', title:'20 寸登机箱，万向轮很顺，80 出', price:'80', desc:'去年买的，只用过一次回家。拉杆没松，内衬也干净。\n东区 5 栋楼下自取。', area:'东区 5 栋', contact:'微信 case80', createdAt:now-6*H, views:73, contacts:9, status:'open', author:'何同学', ownerId:'demo11', seed:true, imgs:['img/suitcase.jpg']},
+    {id:'d12', type:'sell', title:'电热水壶 1.5L，烧水快，20', price:'20', desc:'寝室换了饮水机，这个闲置。壶底有一点水垢，洗一下就好。', area:'西区 3 栋', contact:'QQ 512884', createdAt:now-26*H, views:41, contacts:5, status:'open', author:'孙同学', ownerId:'demo12', seed:true, imgs:['img/kettle.jpg']},
+    {id:'d13', type:'sell', title:'吹风机，负离子，宿舍能用，35', price:'35', desc:'功率 1200W，宿舍不跳闸。线有点长，收的时候要缠一下。', area:'南区 2 栋', contact:'微信 dry35', createdAt:now-9*H, views:66, contacts:8, status:'open', author:'赵同学', ownerId:'demo13', seed:true, imgs:['img/hairdryer.jpg']},
+    {id:'d14', type:'sell', title:'24 寸显示器，1080p，毕业出 260', price:'260', desc:'屏幕没有坏点，带一根 HDMI 线和原装支架。宿舍桌上用刚好。', area:'北区 4 栋', contact:'微信 mon260', createdAt:now-2.4*D, views:152, contacts:17, status:'open', author:'郭同学', ownerId:'demo14', seed:true, imgs:['img/monitor.jpg']},
+    {id:'d15', type:'sell', title:'无线鼠标，静音，20', price:'20', desc:'换了新鼠标，这个还能用，左键有一点磨光。送一节电池。', area:'图书馆', contact:'QQ 334518', createdAt:now-14*H, views:38, contacts:4, status:'open', author:'马同学', ownerId:'demo15', seed:true, imgs:['img/mouse.jpg']},
+    {id:'d16', type:'sell', title:'桌面小风扇，USB 供电，15', price:'15', desc:'三档风，声音不大。插充电宝或者电脑都能带。', area:'东区 7 栋', contact:'微信 fan15', createdAt:now-3.1*D, views:29, contacts:3, status:'open', author:'罗同学', ownerId:'demo16', seed:true, imgs:['img/fan.jpg']},
+    {id:'d17', type:'sell', title:'迷你电饭煲 1.2L，煮饭煮粥都行，40', price:'40', desc:'一个人用正好，内胆没刮花。寝室楼里有微波炉的话更省事。', area:'西区 1 栋', contact:'微信 rice40', createdAt:now-1.7*D, views:57, contacts:7, status:'open', author:'高同学', ownerId:'demo17', seed:true, imgs:['img/cooker.jpg']},
+    {id:'d18', type:'sell', title:'长板，九成新，带护具，120', price:'120', desc:'玩了一个学期，板面有一点划痕。护腕护膝一起送，不想占地方了。', area:'操场', contact:'微信 skate120', createdAt:now-5.5*H, views:88, contacts:12, status:'open', author:'刘同学', ownerId:'demo18', seed:true, imgs:['img/skateboard.jpg']},
+    {id:'d19', type:'sell', title:'白色运动鞋 42 码，只穿过两次，100', price:'100', desc:'买大了一码，就一直放着。鞋盒还在，可以当面试。', area:'南区 6 栋', contact:'QQ 660123', createdAt:now-31*H, views:96, contacts:14, status:'open', author:'王同学', ownerId:'demo19', seed:true, imgs:['img/sneakers.jpg']},
+    {id:'d20', type:'sell', title:'玻璃水杯 900ml，带提手，10', price:'10', desc:'容量大，泡茶泡咖啡都行。盖子有点松，介意的话别拍。', area:'一教', contact:'微信 cup10', createdAt:now-4.2*D, views:21, contacts:2, status:'open', author:'匿名同学', ownerId:'demo20', seed:true, imgs:['img/bottle.jpg']},
+    {id:'d21', type:'sell', title:'20000 毫安充电宝，双口，45', price:'45', desc:'能给手机充四次左右，坐高铁回家很够用。带一根短线。', area:'北区 2 栋', contact:'微信 pb45', createdAt:now-11*H, views:62, contacts:9, status:'open', author:'陈同学', ownerId:'demo21', seed:true, imgs:['img/powerbank.jpg']},
+    {id:'d22', type:'sell', title:'平板 10.9 寸，含保护壳和笔，550', price:'550', desc:'主要用来看课件和记笔记，屏幕贴了膜没有划伤。\n配件都齐，可以当面验机。', area:'东区 4 栋', contact:'微信 pad550', createdAt:now-1.1*D, views:210, contacts:26, status:'done', author:'林同学', ownerId:'demo22', seed:true, imgs:['img/tablet.jpg']},
+    {id:'d23', type:'sell', title:'台式化妆镜，双面，15', price:'15', desc:'一面正常一面放大，底座稳。搬宿舍不想带了。', area:'西区 5 栋', contact:'QQ 771209', createdAt:now-3.6*D, views:34, contacts:3, status:'open', author:'周同学', ownerId:'demo23', seed:true, imgs:['img/mirror.jpg']},
+    {id:'d24', type:'sell', title:'黑框眼镜，配好 300 度镜片，50', price:'50', desc:'去年配的，后来换了新的。镜片没有明显划痕，度数 300。', area:'图书馆 2 楼', contact:'微信 glass50', createdAt:now-2.9*D, views:27, contacts:2, status:'open', author:'何同学', ownerId:'demo24', seed:true, imgs:['img/glasses.jpg']},
+    {id:'d25', type:'sell', title:'65W 快充充电头，两个口，25', price:'25', desc:'手机电脑都能带，出门带一个就够。插脚是国标。', area:'一教 105', contact:'微信 pd25', createdAt:now-7*H, views:44, contacts:6, status:'open', author:'郑同学', ownerId:'demo25', seed:true, imgs:['img/charger.jpg']},
+    {id:'d26', type:'sell', title:'《数据结构》教材 + 习题册，20', price:'20', desc:'课上学过一遍，重点画了线。答案在习题册后面。', area:'东区宿舍', contact:'QQ 448812', createdAt:now-6.7*D, views:71, contacts:9, status:'open', author:'李同学', ownerId:'demo26', seed:true, imgs:['img/textbook.jpg']},
+    {id:'d27', type:'lost', title:'一教 202 丢了一串钥匙，钥匙扣是黑色的', desc:'上面有三把钥匙和一张门禁卡，门禁卡贴了蓝色的标签。\n昨天晚上自习完走的急，可能落在抽屉里了。', area:'一教 202', contact:'微信 key202', createdAt:now-4*H, views:31, contacts:3, status:'open', author:'吴同学', ownerId:'demo27', seed:true, imgs:['img/keys.jpg']},
+    {id:'d28', type:'lost', title:'体育馆丢了一个篮球，球上写了名字', desc:'周二下午打完球忘了拿，橙色七号球，侧面用记号笔写了「张」。\n球是队里共用的，找到了请一定联系我。', area:'体育馆', contact:'电话 139****2043', createdAt:now-22*H, views:47, contacts:6, status:'open', author:'张同学', ownerId:'demo28', seed:true, imgs:['img/basketball.jpg']},
+    {id:'d29', type:'sell', title:'民谣吉他，带琴包和变调夹，200', price:'200', desc:'大一买的，弹了两年。琴颈没变形，第三弦换过。\n琴包有点旧，背带还在。', area:'南区 1 栋', contact:'微信 guitar200', createdAt:now-8.5*D, views:118, contacts:15, status:'open', author:'赵同学', ownerId:'demo29', seed:true, imgs:['img/guitar.jpg']},
+    {id:'d30', type:'sell', title:'机械表，皮带款，走时准，150', price:'150', desc:'戴了半年，表带有一点折痕。防水 30 米，洗澡别戴。', area:'北区 3 栋', contact:'微信 watch150', createdAt:now-5.2*D, views:93, contacts:11, status:'open', author:'孙同学', ownerId:'demo30', seed:true, imgs:['img/watch.jpg']},
+    {id:'d31', type:'sell', title:'大号收纳箱，带轮，搬寝神器，35', price:'35', desc:'装过一箱书，轮子还顺。搬完宿舍用不上了，箱盖有点划痕。\n东区 2 栋楼下自提。', area:'东区 2 栋', contact:'微信 box35', createdAt:now-4.5*H, views:36, contacts:4, status:'open', author:'曹同学', ownerId:'demo31', seed:true, imgs:['img/box.jpg']},
+    {id:'d32', type:'sell', title:'6 位插排，带总开关，25', price:'25', desc:'线长 1.8 米，插孔都通电。桌面上用刚好，搬走前出。', area:'西区 4 栋', contact:'QQ 561230', createdAt:now-19*H, views:52, contacts:7, status:'open', author:'许同学', ownerId:'demo32', seed:true, imgs:['img/strip.jpg']},
+    {id:'d33', type:'sell', title:'桌面加湿器，静音，30', price:'30', desc:'开到最小档基本听不见，水箱能撑一整晚。滤芯上个月换的。', area:'北区 5 栋', contact:'微信 mist30', createdAt:now-2.3*D, views:41, contacts:5, status:'open', author:'邓同学', ownerId:'demo33', seed:true, imgs:['img/humidifier.jpg']},
+    {id:'d34', type:'sell', title:'瑜伽垫 6mm，蓝色，20', price:'20', desc:'买来练了两个月，后来懒了。表面擦干净了，没有破洞。\n卷起来带走就行。', area:'体育馆', contact:'微信 yoga20', createdAt:now-3.4*D, views:28, contacts:2, status:'open', author:'韩同学', ownerId:'demo34', seed:true, imgs:['img/yoga.jpg']},
+    {id:'d35', type:'sell', title:'哑铃一对，5kg，60', price:'60', desc:'包胶的，放地上不吵。练了半年手臂，现在去健身房了。', area:'操场', contact:'微信 db60', createdAt:now-6.6*H, views:47, contacts:6, status:'open', author:'冯同学', ownerId:'demo35', seed:true, imgs:['img/dumbbell.jpg']},
+    {id:'d36', type:'sell', title:'羽毛球拍，送一筒球，35', price:'35', desc:'拍线还是原装的，磅数不高但够打。球筒里剩 3 个。', area:'体育馆', contact:'微信 bad35', createdAt:now-1.5*D, views:63, contacts:8, status:'open', author:'曹同学', ownerId:'demo36', seed:true, imgs:['img/racket.jpg']},
+    {id:'d37', type:'sell', title:'足球 5 号，八成新，40', price:'40', desc:'打过几次院赛，皮没开。打足气了，可以直接来试脚感。', area:'操场', contact:'微信 ball40', createdAt:now-28*H, views:55, contacts:9, status:'open', author:'蒋同学', ownerId:'demo37', seed:true, imgs:['img/football.jpg']},
+    {id:'d38', type:'sell', title:'电子琴 61 键，带琴架，180', price:'180', desc:'大二买的，断断续续弹。琴键都正常，有个按键声音稍轻但不影响。\n琴架太重，只在本校送。', area:'南区 3 栋', contact:'微信 piano180', createdAt:now-4.1*D, views:132, contacts:16, status:'open', author:'沈同学', ownerId:'demo38', seed:true, imgs:['img/piano.jpg']},
+    {id:'d39', type:'sell', title:'头戴式耳机，JBL，100', price:'100', desc:'耳罩皮有一点掉，声音正常。线是原装的，接头没氧化。', area:'图书馆', contact:'QQ 660318', createdAt:now-21*H, views:74, contacts:10, status:'open', author:'杨同学', ownerId:'demo39', seed:true, imgs:['img/headphone.jpg']},
+    {id:'d40', type:'sell', title:'猫王小音箱，复古绿，150', price:'150', desc:'音质不错，宿舍放歌够响。旋钮有点松，不影响用。', area:'东区 6 栋', contact:'微信 spk150', createdAt:now-2.8*D, views:96, contacts:13, status:'done', author:'朱同学', ownerId:'demo40', seed:true, imgs:['img/speaker.jpg']},
+    {id:'d41', type:'sell', title:'铝合金手机支架，可折叠，15', price:'15', desc:'金属的，很稳，看网课的时候用。收起来巴掌大。', area:'一教', contact:'微信 stand15', createdAt:now-8*H, views:33, contacts:3, status:'open', author:'秦同学', ownerId:'demo41', seed:true, imgs:['img/stand.jpg']},
+    {id:'d42', type:'sell', title:'标签打印机，打手账标签用，80', price:'80', desc:'打标签挺方便，配了一卷纸。最近不弄手账了，出给需要的。', area:'北区 1 栋', contact:'微信 label80', createdAt:now-3.9*D, views:39, contacts:4, status:'open', author:'尤同学', ownerId:'demo42', seed:true, imgs:['img/printer.jpg']},
+    {id:'d43', type:'sell', title:'无线路由器，宿舍能接，45', price:'45', desc:'插上就能用，说明书还在。学校网口直接接，几个人合着用很稳。', area:'西区 2 栋', contact:'QQ 440276', createdAt:now-1.9*D, views:87, contacts:14, status:'open', author:'许同学', ownerId:'demo43', seed:true, imgs:['img/router.jpg']},
+    {id:'d44', type:'sell', title:'不锈钢饭盒，带盖，20', price:'20', desc:'食堂打饭用，能进蒸箱。盖子胶圈还在，不漏汤。', area:'一教 103', contact:'微信 box20', createdAt:now-5.6*D, views:26, contacts:2, status:'open', author:'何同学', ownerId:'demo44', seed:true, imgs:['img/lunchbox.jpg']},
+    {id:'d45', type:'sell', title:'宿舍电煮锅 1.5L，45', price:'45', desc:'煮面煮粥都行，带蒸笼。功率不高，宿舍能用（还是注意别被查）。', area:'西区 5 栋', contact:'微信 pot45', createdAt:now-13*H, views:118, contacts:19, status:'open', author:'邓同学', ownerId:'demo45', seed:true, imgs:['img/epot.jpg']},
+    {id:'d46', type:'sell', title:'便携榨汁杯，USB 充电，30', price:'30', desc:'打果汁和奶昔都行，刀头没钝。杯子洗过几次，没有异味。', area:'南区 2 栋', contact:'QQ 880134', createdAt:now-4.7*D, views:44, contacts:5, status:'open', author:'冯同学', ownerId:'demo46', seed:true, imgs:['img/blender.jpg']},
+    {id:'d47', type:'sell', title:'电子体重秤，20', price:'20', desc:'称得挺准，和医务室的差不到一斤。电池还有电。', area:'北区 3 栋', contact:'微信 scale20', createdAt:now-2.6*D, views:31, contacts:3, status:'open', author:'蒋同学', ownerId:'demo47', seed:true, imgs:['img/scale.jpg']},
+    {id:'d48', type:'sell', title:'手持挂烫机，60', price:'60', desc:'衬衫裤子都能烫平，水箱小但够用一件。用了不到十次。', area:'东区 1 栋', contact:'微信 iron60', createdAt:now-7.4*D, views:58, contacts:6, status:'done', author:'杨同学', ownerId:'demo48', seed:true, imgs:['img/steamer.jpg']},
+    {id:'d49', type:'sell', title:'轮滑鞋 39 码，带护具，80', price:'80', desc:'玩过一学期，轮子磨了一点但不影响。护膝护腕一起送。', area:'操场', contact:'微信 sk80', createdAt:now-3.3*D, views:49, contacts:7, status:'open', author:'秦同学', ownerId:'demo49', seed:true, imgs:['img/skates.jpg']},
+    {id:'d50', type:'sell', title:'双人帐篷，露营用，120', price:'120', desc:'去年国庆用过两次，防水没掉。收纳袋有点脏，杆子齐全。', area:'南区 4 栋', contact:'QQ 220567', createdAt:now-9.5*D, views:76, contacts:8, status:'open', author:'沈同学', ownerId:'demo50', seed:true, imgs:['img/tent.jpg']},
+    {id:'d51', type:'sell', title:'乒乓球拍一对，老款木拍，15', price:'15', desc:'家里翻出来的老拍子，胶皮硬了，当练习拍用没问题。', area:'体育馆', contact:'微信 pp15', createdAt:now-6.1*D, views:23, contacts:2, status:'open', author:'朱同学', ownerId:'demo51', seed:true, imgs:['img/pingpong.jpg']},
+    {id:'d52', type:'sell', title:'酒店式一次性拖鞋，全新，8', price:'8', desc:'住酒店带回来的，没穿过，一次没用。宿舍来客人穿正好。', area:'北区 2 栋', contact:'微信 slip8', createdAt:now-16*H, views:19, contacts:2, status:'open', author:'韩同学', ownerId:'demo52', seed:true, imgs:['img/slippers.jpg']},
+    {id:'d53', type:'sell', title:'桌面置物架，竹的，25', price:'25', desc:'放笔和眼镜刚好，还能插手机。边上有一点点磕。', area:'东区 3 栋', contact:'微信 shelf25', createdAt:now-2.1*D, views:37, contacts:3, status:'open', author:'尤同学', ownerId:'demo53', seed:true, imgs:['img/shelf.jpg']},
+    {id:'d54', type:'sell', title:'塑料衣架 20 个，打包 5 块', price:'5', desc:'搬宿舍多出来的，都是好的。太重了懒得带，自取。', area:'西区 3 栋', contact:'微信 hanger5', createdAt:now-11.5*H, views:24, contacts:4, status:'open', author:'曹同学', ownerId:'demo54', seed:true, imgs:['img/hanger.jpg']},
+    {id:'d55', type:'lost', title:'体育馆更衣室丢了一个棕色钱包', desc:'换衣服时放在长椅上忘了拿，里面有饭卡和一张银行卡，现金不多。\n捡到的话请一定联系我，谢谢。', area:'体育馆更衣室', contact:'电话 137****8890', createdAt:now-5*H, views:43, contacts:5, status:'open', author:'吕同学', ownerId:'demo55', seed:true, imgs:['img/wallet.jpg']},
+    {id:'d56', type:'lost', title:'三教 105 落下一件透明雨衣', desc:'下雨那天穿过去上课，走的时候挂在椅背上忘了。\n不贵，但这两天还要用，麻烦看到的同学说一声。', area:'三教 105', contact:'微信 rain_lost', createdAt:now-1.3*D, views:27, contacts:2, status:'open', author:'施同学', ownerId:'demo56', seed:true, imgs:['img/raincoat.jpg']},
+    {id:'d57', type:'lost', title:'图书馆 3 楼丢了一副黑色耳机', desc:'带线的那种，线有点打结。在靠窗那排自习时掉的。', area:'图书馆 3 楼', contact:'QQ 550812', createdAt:now-33*H, views:35, contacts:3, status:'open', author:'孔同学', ownerId:'demo57', seed:true, imgs:['img/earbuds.jpg']},
+    {id:'d58', type:'lost', title:'二教 204 捡到一本学生证，姓陈', desc:'夹在课本里一起收上来的，已经交到二教值班室，也可以先联系我确认。\n认领时说一下学院。', area:'二教 204', contact:'微信 card_found', createdAt:now-2*D, views:64, contacts:9, status:'done', author:'曹同学', ownerId:'demo58', seed:true, imgs:['img/studentcard.jpg']},
+    {id:'d59', type:'lost', title:'操场看台丢了一个玻璃随行杯', desc:'杯身有红色的盖子，晚上看比赛时放在台阶上忘了拿。\n杯子不贵，主要是用习惯了。', area:'操场看台', contact:'微信 cup_lost', createdAt:now-1.1*D, views:22, contacts:2, status:'open', author:'施同学', ownerId:'demo59', seed:true, imgs:['img/thermalcup.jpg']},
+    {id:'d60', type:'lost', title:'图书馆 5 楼丢了一台笔记本，银色', desc:'晚上闭馆前走的急，落在靠里的位置。电脑包是灰色的，里面有充电器。\n已经报给管理员了，如果有同学看到请留言。', area:'图书馆 5 楼', contact:'电话 135****4412', createdAt:now-38*H, views:89, contacts:12, status:'open', author:'吕同学', ownerId:'demo60', seed:true, imgs:['img/laptop.jpg']}
+  ];
+}
+
+/* ---------- 路由 ---------- */
+var ui = { tab:'all', q:'', authMode:'login', next:'/' };
+var draft = { type:'lost', imgs:[] };
+var lastItemView = null;
+
+function route(){ return (location.hash || '#/').replace(/^#/, '') || '/'; }
+function needLogin(target){
+  ui.next = target;
+  go('/login');
+  toast('先登录一下');
+}
+
+/* ============================================================
+ * 视图
+ * ============================================================ */
+function iconSearch(){
+  return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B9099" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path></svg>';
+}
+
+/* 底部导航用的线性图标，全部走 currentColor，跟着文字变色 */
+function ico(name){
+  var p = {
+    home:'<path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/>',
+    plus:'<path d="M12 5v14M5 12h14"/>',
+    heart:'<path d="M12 20.2c-.3 0-6.9-4.1-8.5-8.1C2.2 8.4 4.3 5 7.6 5c1.8 0 3.3 1 4.4 2.5C13.1 6 14.6 5 16.4 5c3.3 0 5.4 3.4 4.1 7.1-1.6 4-8.2 8.1-8.5 8.1z"/>',
+    user:'<circle cx="12" cy="8" r="3.6"/><path d="M4.6 20.4c0-3.6 3.3-6.2 7.4-6.2s7.4 2.6 7.4 6.2"/>',
+    chart:'<path d="M4 20V11M10 20V5M16 20v-6M2 20h20"/>',
+    image:'<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m5 17 4.5-4.5 3 3L16 12l3.5 4"/>'
+  }[name] || '';
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">'+p+'</svg>';
+}
+
+function heroHome(){
+  var u = me();
+  var openN = state.items.filter(function(x){ return x.status==='open'; }).length;
+  var todayN = state.items.filter(function(x){ return Date.now() - x.createdAt < 86400e3; }).length;
+  return '<div class="hero"><div class="hero-in">' +
+    '<div class="hero-top">' +
+      '<div class="nm">校园信息墙</div>' +
+      '<div class="sp"></div>' +
+      (u ? '<a class="pill" href="#/mine">'+esc(u.nick)+'</a>' : '<a class="pill" href="#/login">登录</a>') +
+      '<button class="pill" data-act="share">分享</button>' +
+    '</div>' +
+    '<div class="hero-sub">在架 '+openN+' 条 · 今日新增 '+todayN+' 条</div>' +
+    '<div class="srch">' + iconSearch() +
+      '<input id="q" placeholder="搜物品、地点，比如「雨伞」「图书馆」" value="'+esc(ui.q)+'">' +
+    '</div>' +
+    '<div class="tabs">' +
+      '<button class="tab '+(ui.tab==='all'?'on':'')+'" data-act="tab" data-v="all">全部</button>' +
+      '<button class="tab '+(ui.tab==='lost'?'on':'')+'" data-act="tab" data-v="lost">失物招领</button>' +
+      '<button class="tab '+(ui.tab==='sell'?'on':'')+'" data-act="tab" data-v="sell">二手转让</button>' +
+    '</div>' +
+    '<div class="notice">仅限校内自提，交易前请先看实物；与失物、二手无关的内容会被删除。</div>' +
+  '</div></div>';
+}
+
+function thumbHtml(it){
+  var img = (it.imgs && it.imgs.length)
+    ? '<img src="'+esc(it.imgs[0])+'" alt="" loading="lazy" onerror="this.remove()">' : '';
+  return '<div class="thumb">'+ico('image')+img+'</div>';
+}
+
+function card(it, extra, meta){
+  var t = it.type === 'lost' ? '失物招领' : '二手转让';
+  return '<div class="card">' +
+    '<a href="#/item/'+it.id+'" style="display:flex;gap:12px;flex:1;min-width:0">' +
+      thumbHtml(it) +
+      '<div class="c-main">' +
+        '<div class="c-top">' +
+          '<span class="tag '+it.type+'">'+t+'</span>' +
+          (it.status==='done' ? '<span class="tag done">已解决</span>' : '') +
+          (it.price ? '<span class="price">¥'+esc(it.price)+'</span>' : '') +
+        '</div>' +
+        '<div class="c-title">'+esc(it.title)+'</div>' +
+        '<div class="c-meta"><i>'+esc(it.area||'校内')+'</i><i>'+ago(it.createdAt)+'</i><i>'+it.views+' 浏览</i>' +
+          (favCount(it.id) ? '<i>♥ '+favCount(it.id)+'</i>' : '') +
+          (meta || '') +
+        '</div>' +
+      '</div>' +
+    '</a>' +
+    (extra || '') +
+  '</div>';
+}
+
+function viewHome(){
+  var list = state.items.slice().sort(function(a,b){
+    if (a.status !== b.status) return a.status === 'open' ? -1 : 1;
+    return b.createdAt - a.createdAt;
+  });
+  if (ui.tab !== 'all') list = list.filter(function(x){ return x.type === ui.tab; });
+  if (ui.q.trim()){
+    var q = ui.q.trim().toLowerCase();
+    list = list.filter(function(x){
+      return (x.title + ' ' + x.desc + ' ' + (x.area||'')).toLowerCase().indexOf(q) >= 0;
+    });
+  }
+  var body = list.length
+    ? list.map(function(x){ return card(x); }).join('')
+    : '<div class="empty"><span class="ic">🍃</span>还没有相关信息<br>点下面「发布」，30 秒发一条</div>';
+  return heroHome() + '<div class="list">' + body + '</div>' +
+    '<div class="hint" style="text-align:center;padding:14px 24px 20px">' +
+      '已经到底了 · 共 '+list.length+' 条，发布一条只要 30 秒' +
+    '</div>';
+}
+
+function viewItem(id){
+  var it = null;
+  for (var i=0;i<state.items.length;i++) if (state.items[i].id === id) it = state.items[i];
+  if (!it) return '<div class="hd"><div class="hd-in"><button class="btn ghost sm" data-act="back">‹ 返回</button></div></div>' +
+    '<div class="empty"><span class="ic">🕳️</span>内容不存在或已被删除</div>';
+
+  if (lastItemView !== id){
+    it.views = (it.views||0) + 1;
+    saveItems();
+    track('view_item', id);
+    lastItemView = id;
+  }
+
+  var t = it.type === 'lost' ? '失物招领' : '二手转让';
+  var cover = (it.imgs && it.imgs.length)
+    ? '<div class="cover"><img src="'+esc(it.imgs[0])+'" alt="" onerror="this.parentNode.style.display=\'none\'"></div>' : '';
+  var rest = (it.imgs && it.imgs.length > 1)
+    ? '<div class="d-imgs">' + it.imgs.slice(1).map(function(s){
+        return '<img src="'+esc(s)+'" alt="" onerror="this.remove()">'; }).join('') + '</div>' : '';
+  var contactHtml = it.contact
+    ? '<div class="contact-box"><div style="font-size:11.5px;color:#98A1B2">联系方式</div>' +
+      '<div class="num">'+esc(it.contact)+'</div>' +
+      '<button class="btn ghost sm" data-act="copy" data-v="'+esc(it.contact)+'">复制</button></div>' : '';
+
+  var faved = isFav(it.id);
+  var mine = it.ownerId === state.session;
+
+  return '<div class="hd"><div class="hd-in">' +
+      '<button class="btn ghost sm" data-act="back">‹ 返回</button><div class="grow"></div>' +
+      '<button class="btn ghost sm" data-act="share">分享</button>' +
+    '</div></div>' +
+    '<div class="wrap">' + cover +
+      '<div class="panel">' +
+        '<div class="c-top"><span class="tag '+it.type+'">'+t+'</span>' +
+          (it.status==='done' ? '<span class="tag done">已解决</span>' : '') +
+          '<span style="margin-left:auto;font-size:12px;color:#A3ABB9">'+ago(it.createdAt)+'</span></div>' +
+        '<h1 class="d-title">'+esc(it.title)+'</h1>' +
+        (it.price ? '<div class="d-price">¥'+esc(it.price)+'</div>' : '') +
+        rest +
+        '<div class="d-desc">'+esc(it.desc)+'</div>' +
+        '<div class="kv">' +
+          '<div><span>地点</span><span>'+esc(it.area||'未填写')+'</span></div>' +
+          '<div><span>数据</span><span>'+it.views+' 次浏览 · '+it.contacts+' 人联系 · '+favCount(it.id)+' 人收藏</span></div>' +
+          '<div><span>发布者</span><span>'+esc(it.author||'匿名同学')+(mine?'（我）':'')+'</span></div>' +
+        '</div>' +
+        contactHtml +
+      '</div>' +
+      (mine ? '<div class="row-btns">' +
+        '<button class="btn line sm" data-act="toggle-status" data-id="'+it.id+'">'+(it.status==='open'?'标记为已解决':'重新打开')+'</button>' +
+        '<button class="btn danger sm" data-act="del" data-id="'+it.id+'">删除这条</button>' +
+      '</div>' : '') +
+    '</div>' +
+    '<div class="bar-b">' +
+      '<button class="fav-btn '+(faved?'on':'')+'" data-act="fav" data-id="'+it.id+'">'+(faved?'❤️':'🤍')+'</button>' +
+      (it.status === 'open'
+        ? '<button class="btn" style="flex:1" data-act="contact" data-id="'+it.id+'">'+(faved?'已收藏 · ':'')+'我要联系 TA</button>'
+        : '<button class="btn line" style="flex:1" data-act="noop">这条已解决</button>') +
+    '</div>';
+}
+
+function viewPublish(){
+  var u = me();
+  if (!u) return viewAuth('login', '登录后才能发布，避免刷屏');
+  return '<div class="hd"><div class="hd-in">' +
+      '<button class="btn ghost sm" data-act="back">‹ 返回</button><div class="grow"></div>' +
+      '<div class="ttl">发布信息</div>' +
+    '</div></div>' +
+    '<div class="wrap"><form id="pub" class="panel">' +
+      '<div class="field"><label>类型</label><div class="seg">' +
+        '<button type="button" class="'+(draft.type==='lost'?'on lost':'')+'" data-act="type" data-v="lost">我丢了东西</button>' +
+        '<button type="button" class="'+(draft.type==='sell'?'on sell':'')+'" data-act="type" data-v="sell">我要转卖</button>' +
+      '</div></div>' +
+      '<div class="field"><label>标题（一句话说清楚）</label>' +
+        '<input name="title" maxlength="40" placeholder="例：三教 302 丢了一把黑色雨伞"></div>' +
+      '<div class="field"><label>详情</label>' +
+        '<textarea name="desc" maxlength="500" placeholder="什么时候、在哪丢的 / 什么成色、有没有配件、怎么方便交易"></textarea></div>' +
+      '<div class="field"><label>价格 / 悬赏（可不填）</label>' +
+        '<input name="price" inputmode="decimal" maxlength="8" placeholder="例：150"></div>' +
+      '<div class="field"><label>地点</label>' +
+        '<input name="area" maxlength="20" placeholder="例：三教 / 南门 / 西区 6 栋"></div>' +
+      '<div class="field"><label>联系方式</label>' +
+        '<input name="contact" maxlength="40" placeholder="微信号 / QQ / 手机号"></div>' +
+      '<div class="field"><label>图片（最多 2 张，自动压缩）</label>' +
+        '<div class="up">' +
+          draft.imgs.map(function(s,i){
+            return '<label><img src="'+s+'" alt=""><input type="file" accept="image/*" data-act="reimg" data-i="'+i+'"></label>';
+          }).join('') +
+          (draft.imgs.length < 2 ? '<label>＋<input type="file" accept="image/*" id="f-img"></label>' : '') +
+        '</div>' +
+        '<div class="hint">图片只存在本机，不会上传到任何服务器。</div></div>' +
+      '<button class="btn wide">发布</button>' +
+      '<div class="hint" style="text-align:center">发布后可以随时在「我的」里标记已解决或删除</div>' +
+    '</form></div>';
+}
+
+function viewMine(){
+  var u = me();
+  if (!u) return viewAuth('login', '登录后查看你的发布和收藏');
+
+  var mine = state.items.filter(function(x){ return x.ownerId === u.id; })
+    .sort(function(a,b){ return b.createdAt - a.createdAt; });
+  var rows = mine.length ? mine.map(function(it){
+    return card(it,
+      '<div class="acts">' +
+        '<button class="btn line sm" data-act="toggle-status" data-id="'+it.id+'">'+(it.status==='open'?'标记解决':'重新打开')+'</button>' +
+        '<button class="btn danger sm" data-act="del" data-id="'+it.id+'">删除</button>' +
+      '</div>');
+  }).join('') : '<div class="empty"><span class="ic">📝</span>你还没有发布过内容</div>';
+
+  var favN = myFavs().length;
+
+  return '<div class="hd"><div class="hd-in"><div class="ttl">我的</div><div class="grow"></div>' +
+      '<button class="btn ghost sm" data-act="logout">退出</button></div></div>' +
+    '<div class="wrap"><div class="panel" style="display:flex;align-items:center;gap:14px">' +
+      '<div class="avatar">'+esc(u.nick.slice(0,1))+'</div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-weight:600;font-size:16px">'+esc(u.nick)+(u.role==='admin'?' · 管理员':'')+'</div>' +
+        '<div class="hint" style="margin-top:3px">'+(u.role==='admin' ? '工号 '+esc(u.sid||'-') : '学号 '+esc(u.sid||'-')+' · 已认证')+' · 发布 '+mine.length+' 条 · 收藏 '+favN+' 条</div>' +
+      '</div>' +
+    '</div></div>' +
+    '<div class="row2">' +
+      '<a class="btn line" style="flex:1" href="#/favs">我的收藏（'+favN+'）</a>' +
+      '<a class="btn line" style="flex:1" href="#/publish">发布一条</a>' +
+    '</div>' +
+    '<div class="sec-t">我发布的 · '+mine.length+' 条</div>' +
+    '<div class="list">'+rows+'</div>' +
+    '<div class="hint" style="padding:0 16px 24px">「标记解决」会把内容移到列表底部并打上已解决标签，删除后不可恢复。</div>';
+}
+
+function viewFavs(){
+  var u = me();
+  if (!u) return viewAuth('login', '登录后收藏会跟着你的账号走');
+  var ids = myFavs();
+  var list = ids.map(function(id){
+    for (var i=0;i<state.items.length;i++) if (state.items[i].id === id) return state.items[i];
+    return null;
+  }).filter(Boolean);
+  var rows = list.length ? list.map(function(it){
+    return card(it, '', '<button class="fav-mini" data-act="fav" data-id="'+it.id+'">已收藏 · 点此取消</button>');
+  }).join('') : '<div class="empty"><span class="ic">🤍</span>还没有收藏<br>在详情页点左下角的心，收进来慢慢看</div>';
+
+  return '<div class="hd"><div class="hd-in"><div class="ttl">我的收藏</div><div class="grow"></div>' +
+      '<span class="hint" style="margin:0">'+list.length+' 条</span></div></div>' +
+    '<div class="list">'+rows+'</div>' +
+    '<div class="hint" style="padding:0 16px 24px">收藏是账号级的：同一账号在这台设备上换浏览器标签页都还在；再点一次心就取消。</div>';
+}
+
+function viewAuth(mode, tip){
+  ui.authMode = mode || ui.authMode;
+  var login = ui.authMode === 'login';
+  return '<div class="hd"><div class="hd-in">' +
+      '<button class="btn ghost sm" data-act="back">‹ 返回</button><div class="grow"></div>' +
+      '<div class="ttl">'+(login?'登录':'注册新账号')+'</div></div></div>' +
+    '<div class="auth"><div class="box">' +
+      '<h2>'+(login?'欢迎回来':'创建你的账号')+'</h2>' +
+      '<p class="sb">'+(tip || (login?'用昵称或学号登录':'校园平台只对本校开放，注册需要填学号（8–12 位，只显示在「我的」页面，不会出现在发布内容里）'))+'</p>' +
+      '<div class="switch">' +
+        '<button class="'+(login?'on':'')+'" data-act="auth-mode" data-v="login">登录</button>' +
+        '<button class="'+(login?'':'on')+'" data-act="auth-mode" data-v="register">注册</button>' +
+      '</div>' +
+      '<form id="auth">' +
+        '<div class="field"><label>'+(login?'昵称 / 学号':'昵称')+'</label><input name="nick" maxlength="12" placeholder="'+(login?'例：小语 或 2023040123':'例：小语')+'" autocomplete="username"></div>' +
+        (login ? '' : '<div class="field"><label>学号（8–12 位数字）</label><input name="sid" inputmode="numeric" maxlength="12" placeholder="例：2023040123" autocomplete="off"></div>') +
+        '<div class="field"><label>密码（至少 6 位）</label><input name="pass" type="password" maxlength="24" placeholder="别用常用密码" autocomplete="current-password"></div>' +
+        (login ? '' : '<div class="field"><label>确认密码</label><input name="pass2" type="password" maxlength="24" placeholder="再输一次"></div>') +
+        '<button class="btn wide">'+(login?'登录':'注册并登录')+'</button>' +
+      '</form>' +
+      '<div class="note">管理员账号：<b>admin</b> / <b>admin123</b>，登录后底部会多一个「数据」入口。<br>账号和内容都保存在本机浏览器里，换设备不同步。</div>' +
+    '</div></div>';
+}
+
+function viewAdmin(){
+  if (!isAdmin()){
+    return '<div class="hd"><div class="hd-in"><div class="ttl">数据后台</div></div></div>' +
+      '<div class="empty"><span class="ic">🔒</span>这个页面只有管理员能看<br>' +
+      '<button class="btn sm" style="margin-top:14px" data-act="to-admin-login">用管理员账号登录</button></div>';
+  }
+  var totalItems = state.items.length;
+  var openItems = state.items.filter(function(x){ return x.status==='open'; }).length;
+  var doneItems = totalItems - openItems;
+  var views = 0, contacts = 0;
+  state.items.forEach(function(x){ views += x.views||0; contacts += x.contacts||0; });
+
+  var evCount = { view_home:0, view_item:0, click_contact:0, publish:0, fav:0 };
+  state.events.forEach(function(e){ if (evCount[e.ev] != null) evCount[e.ev]++; });
+
+  var top = evCount.view_home;
+  var mid = evCount.view_item;
+  var ct  = evCount.click_contact;
+  var bot = doneItems;
+  var funnel = [['进入首页',top],['查看详情',mid],['发起联系',ct],['完成/找回',bot]];
+  var fmax = Math.max.apply(null, funnel.map(function(x){ return x[1]; })) || 1;
+
+  var byCh = {};
+  state.events.forEach(function(e){
+    var c = e.ch || 'direct';
+    if (!byCh[c]) byCh[c] = { uv:{}, ev:0, pub:0, contact:0, fav:0 };
+    byCh[c].uv[e.uid] = 1; byCh[c].ev++;
+    if (e.ev === 'publish') byCh[c].pub++;
+    if (e.ev === 'click_contact') byCh[c].contact++;
+    if (e.ev === 'fav') byCh[c].fav++;
+  });
+  var chRows = Object.keys(byCh).map(function(c){
+    var o = byCh[c];
+    return { c:c, uv:Object.keys(o.uv).length, ev:o.ev, pub:o.pub, contact:o.contact, fav:o.fav };
+  }).sort(function(a,b){ return b.uv - a.uv; });
+
+  var days = [], buckets = {};
+  for (var i = 13; i >= 0; i--){
+    var d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() - i);
+    var k = dayKey(d.getTime());
+    days.push({ k:k, label:(d.getMonth()+1)+'/'+d.getDate(), n:0 });
+    buckets[k] = 0;
+  }
+  state.events.forEach(function(e){ var k = dayKey(e.t); if (buckets[k] != null) buckets[k]++; });
+  days.forEach(function(d){ d.n = buckets[d.k]; });
+  var dmax = Math.max.apply(null, days.map(function(d){ return d.n; })) || 1;
+
+  var trend = days.map(function(d){
+    var h = Math.max(3, Math.round(d.n / dmax * 92));
+    return '<i class="'+(d.n === dmax && dmax > 1 ? 'hi' : '')+'" style="height:'+h+'px" title="'+d.label+'：'+d.n+'"></i>';
+  }).join('');
+  var tlabels = days.map(function(d){ return '<span>'+d.label+'</span>'; }).join('');
+
+  var favTotal = 0;
+  for (var kk in state.favs) favTotal += state.favs[kk].length;
+
+  return '<div class="hd"><div class="hd-in">' +
+      '<button class="btn ghost sm" data-act="back">‹ 返回</button><div class="grow"></div>' +
+      '<div class="ttl">运营数据后台</div></div></div>' +
+    '<div class="wrap admin">' +
+      '<div class="kpis">' +
+        '<div class="kpi hl"><div class="n">'+totalItems+'</div><div class="l">累计发布</div></div>' +
+        '<div class="kpi"><div class="n">'+mid+'</div><div class="l">详情浏览</div></div>' +
+        '<div class="kpi"><div class="n">'+ct+'</div><div class="l">联系点击</div></div>' +
+        '<div class="kpi"><div class="n">'+pct(ct, mid)+'%</div><div class="l">联系转化率</div></div>' +
+        '<div class="kpi"><div class="n">'+pct(doneItems, totalItems)+'%</div><div class="l">解决率</div></div>' +
+        '<div class="kpi"><div class="n">'+state.users.length+'</div><div class="l">注册用户</div></div>' +
+        '<div class="kpi"><div class="n">'+favTotal+'</div><div class="l">收藏总数</div></div>' +
+        '<div class="kpi"><div class="n">'+state.events.length+'</div><div class="l">埋点事件</div></div>' +
+      '</div>' +
+
+      '<div class="sec-t">转化漏斗</div>' +
+      '<div class="panel">' +
+        funnel.map(function(f){
+          return '<div class="frow"><div class="lb">'+f[0]+'</div>' +
+            '<div class="tr"><div class="fl" style="width:'+Math.max(2, Math.round(f[1]/fmax*100))+'%"></div></div>' +
+            '<div class="vl">'+f[1]+'</div></div>';
+        }).join('') +
+        '<div class="hint">看哪一步掉得最多，那就是下一个要改的地方。</div>' +
+      '</div>' +
+
+      '<div class="sec-t">近 14 天事件趋势</div>' +
+      '<div class="panel"><div class="trend">'+trend+'</div><div class="tlabels">'+tlabels+'</div></div>' +
+
+      '<div class="sec-t">渠道效果</div>' +
+      '<div class="panel"><table><thead><tr><th>渠道</th><th>访客</th><th>事件</th><th>发布</th><th>联系</th><th>收藏</th></tr></thead><tbody>' +
+        (chRows.length ? chRows.map(function(r){
+          return '<tr><td>'+esc(r.c)+'</td><td>'+r.uv+'</td><td>'+r.ev+'</td><td>'+r.pub+'</td><td>'+r.contact+'</td><td>'+r.fav+'</td></tr>';
+        }).join('') : '<tr><td colspan="6" style="color:#A3ABB9">还没有带渠道的数据</td></tr>') +
+      '</tbody></table>' +
+      '<div class="hint">分享时带上 ?ch=朋友圈 这样的参数，就能看出哪个渠道真的带来了人和内容。</div></div>' +
+
+      '<div class="row-btns">' +
+        '<button class="btn line sm" data-act="export-ev">导出埋点 CSV</button>' +
+        '<button class="btn line sm" data-act="export-item">导出内容 CSV</button>' +
+        '<button class="btn line sm" data-act="seed-demo">重算历史事件</button>' +
+        '<button class="btn danger sm" data-act="clear-demo">清空全部内容</button>' +
+      '</div>' +
+      '<div class="hint" style="padding-bottom:26px">这里的数字都来自埋点事件，导出 CSV 可以在 Excel 里做二次分析。清空后不可恢复，慎点。</div>' +
+    '</div>';
+}
+
+/* ============================================================
+ * 渲染
+ * ============================================================ */
+function render(){
+  var h = route();
+  var app = $('#app');
+  var oldScroll = window.scrollY;
+  var keepScroll = (h === '/') ; 
+
+  if (h.indexOf('/item/') === 0) app.innerHTML = viewItem(h.slice(6));
+  else if (h === '/publish') app.innerHTML = viewPublish();
+  else if (h === '/mine') app.innerHTML = viewMine();
+  else if (h === '/favs') app.innerHTML = viewFavs();
+  else if (h === '/admin') app.innerHTML = viewAdmin();
+  else if (h === '/login') app.innerHTML = viewAuth();
+  else app.innerHTML = viewHome();
+
+  var isDetail = h.indexOf('/item/') === 0;
+  var isAuth = h === '/login';
+  if (!isDetail && !isAuth) app.innerHTML += navBar(h);
+
+  var q = $('#q');
+  if (q && ui.q) q.value = ui.q;
+  if (keepScroll) window.scrollTo(0, oldScroll);
+}
+
+function navBar(h){
+  var on = function(p){ return h === p ? ' on' : ''; };
+  var u = me();
+  var items = [
+    '<a href="#/" class="'+on('/').trim()+'"><span class="ic">'+ico('home')+'</span>首页</a>',
+    '<a href="#/publish" class="'+on('/publish').trim()+'"><span class="ic">'+ico('plus')+'</span>发布</a>',
+    '<a href="#/favs" class="'+on('/favs').trim()+'"><span class="ic">'+ico('heart')+'</span>收藏</a>',
+    u
+      ? '<a href="#/mine" class="'+on('/mine').trim()+'"><span class="ic">'+ico('user')+'</span>我的</a>'
+      : '<a href="#/login" class="'+(h==='/login'?' on':'')+'"><span class="ic">'+ico('user')+'</span>登录</a>'
+  ];
+  if (isAdmin()) items.push('<a href="#/admin" class="'+on('/admin').trim()+'"><span class="ic">'+ico('chart')+'</span>数据</a>');
+  return '<nav class="nav">' + items.join('') + '</nav>';
+}
+
+/* ---------- 剪贴板 / 下载 ---------- */
+function copyText(t){
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(function(){ toast('已复制'); }, function(){ fallbackCopy(t); });
+  } else fallbackCopy(t);
+}
+function fallbackCopy(t){
+  var ta = document.createElement('textarea');
+  ta.value = t; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); toast('已复制'); } catch(e){ toast('复制失败，请长按选择'); }
+  document.body.removeChild(ta);
+}
+function download(name, text, mime){
+  var blob = new Blob([text], { type: mime || 'text/plain;charset=utf-8' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+}
+function toCsv(rows){
+  return '\ufeff' + rows.map(function(r){
+    return r.map(function(c){ return '"'+String(c).replace(/"/g,'""')+'"'; }).join(',');
+  }).join('\r\n');
+}
+
+/* 首屏基线：让后台第一次打开就像"已经跑了两周"，且漏斗各步同源、不自相矛盾 */
+function injectBaseline(){
+  if (state.events.length) return;
+  var now = Date.now();
+  var chs = ['朋友圈','表白墙','宿舍群','地推','direct'];
+  var pickCh = function(){ return chs[Math.floor(Math.random()*chs.length)]; };
+  var pickU = function(){ return 'demo_u' + (1 + Math.floor(Math.random()*60)); };
+  var when = function(){ return now - Math.floor(Math.pow(Math.random(), 1.5) * 13 * 86400e3); };
+
+  if (!Object.keys(state.favs).length){
+    for (var f=0; f<14; f++){
+      var uid = 'demo_u' + (1 + Math.floor(Math.random()*40));
+      var iid = 'd' + (1 + Math.floor(Math.random()*10));
+      var arr = state.favs[uid] || (state.favs[uid] = []);
+      if (arr.indexOf(iid) < 0) arr.push(iid);
+    }
+    saveFavs();
+  }
+
+  state.items.forEach(function(it){
+    var views = it.views || 20, contacts = it.contacts || 3;
+    var home = Math.round(views * (1.5 + Math.random()*1.1));
+    var i;
+    for (i=0;i<home;i++) state.events.push({t:when(), ev:'view_home', id:'', uid:pickU(), ch:pickCh(), demo:true});
+    for (i=0;i<views;i++) state.events.push({t:when(), ev:'view_item', id:it.id, uid:pickU(), ch:pickCh(), demo:true});
+    for (i=0;i<contacts;i++) state.events.push({t:when(), ev:'click_contact', id:it.id, uid:pickU(), ch:pickCh(), demo:true});
+    state.events.push({t:it.createdAt, ev:'publish', id:it.id, uid:pickU(), ch:pickCh(), demo:true});
+  });
+  state.events.sort(function(a,b){ return a.t - b.t; });
+  saveEvents();
+}
+
+/* ---------- 演示事件 ---------- */
+function injectDemoEvents(){
+  var now = Date.now();
+  var chs = ['朋友圈','表白墙','宿舍群','地推','direct'];
+  var evs = ['view_home','view_item','click_contact','publish','fav'];
+  for (var i=0;i<60;i++){
+    state.events.push({
+      t: now - Math.floor(Math.random()*13*86400e3),
+      ev: evs[Math.floor(Math.random()*evs.length)],
+      id: 'd' + (1 + Math.floor(Math.random()*10)),
+      uid: 'demo_u' + Math.floor(Math.random()*24),
+      ch: chs[Math.floor(Math.random()*chs.length)],
+      demo: true
+    });
+  }
+  saveEvents();
+}
+
+/* ---------- 点击委托 ---------- */
+document.addEventListener('click', function(e){
+  var el = e.target.closest('[data-act]');
+  if (!el) return;
+  var act = el.getAttribute('data-act');
+  var id = el.getAttribute('data-id');
+
+  if (act === 'tab'){ ui.tab = el.getAttribute('data-v'); track('filter_tab'); render(); }
+  else if (act === 'back'){ history.length > 1 ? history.back() : go('/'); }
+  else if (act === 'type'){ draft.type = el.getAttribute('data-v'); render(); }
+  else if (act === 'copy'){ copyText(el.getAttribute('data-v')); }
+  else if (act === 'auth-mode'){ ui.authMode = el.getAttribute('data-v'); render(); }
+  else if (act === 'logout'){
+    state.session = null; DB.set('session', null); track('logout');
+    toast('已退出'); go('/'); render();
+  }
+  else if (act === 'to-admin-login'){ ui.authMode='login'; ui.next='/admin'; go('/login'); }
+  else if (act === 'share'){
+    var u2 = location.origin + location.pathname + '?ch=me#' + route();
+    copyText(u2); track('share');
+    toast('链接已复制，直接发给同学就行');
+  }
+  else if (act === 'fav'){
+    if (!me()){ needLogin('/'); return; }
+    var nowFav = toggleFav(id);
+    track(nowFav ? 'fav' : 'unfav', id);
+    toast(nowFav ? '已加入收藏' : '已取消收藏');
+    render();
+  }
+  else if (act === 'contact'){
+    var it = null;
+    for (var i=0;i<state.items.length;i++) if (state.items[i].id===id) it = state.items[i];
+    if (!it) return;
+    it.contacts = (it.contacts||0) + 1; saveItems();
+    track('click_contact', id);
+    toast('已记录一次联系 · 记得尽快回复对方');
+    if (navigator.clipboard && it.contact) navigator.clipboard.writeText(it.contact).catch(function(){});
+    render();
+  }
+  else if (act === 'toggle-status'){
+    if (!isAdmin() && !me()){ needLogin('/mine'); return; }
+    for (var j=0;j<state.items.length;j++){
+      if (state.items[j].id === id){
+        if (state.items[j].ownerId !== state.session && !isAdmin()){ toast('只能改自己发的内容'); return; }
+        state.items[j].status = state.items[j].status === 'open' ? 'done' : 'open';
+        saveItems();
+        track('toggle_status', id);
+        toast(state.items[j].status === 'done' ? '已标记为解决' : '已重新打开');
+      }
+    }
+    render();
+  }
+  else if (act === 'del'){
+    if (!confirm('删除后无法恢复，确定删除这条吗？')) return;
+    var target = null;
+    state.items = state.items.filter(function(x){
+      if (x.id === id){ target = x; return false; }
+      return true;
+    });
+    if (!target) return;
+    if (target.ownerId !== state.session && !isAdmin()){ toast('只能删自己发的内容'); return; }
+    saveItems();
+    for (var k in state.favs){
+      var idx = state.favs[k].indexOf(id);
+      if (idx >= 0) state.favs[k].splice(idx,1);
+    }
+    saveFavs();
+    track('delete_item', id);
+    toast('已删除'); go('/mine'); render();
+  }
+  else if (act === 'export-ev'){
+    var rows = [['时间','事件','内容ID','用户','渠道']];
+    state.events.forEach(function(x){
+      rows.push([new Date(x.t).toLocaleString('zh-CN'), x.ev, x.id||'', x.uid, x.ch]);
+    });
+    download('埋点数据_'+dayKey(Date.now())+'.csv', toCsv(rows), 'text/csv;charset=utf-8');
+    toast('已导出 '+state.events.length+' 条事件');
+  }
+  else if (act === 'export-item'){
+    var r2 = [['ID','类型','标题','价格','地点','状态','浏览','联系','收藏','发布时间','发布者']];
+    state.items.forEach(function(x){
+      r2.push([x.id, x.type==='lost'?'失物招领':'二手', x.title, x.price||'', x.area||'',
+        x.status==='open'?'进行中':'已解决', x.views||0, x.contacts||0, favCount(x.id),
+        new Date(x.createdAt).toLocaleString('zh-CN'), x.author||'']);
+    });
+    download('内容数据_'+dayKey(Date.now())+'.csv', toCsv(r2), 'text/csv;charset=utf-8');
+    toast('已导出 '+state.items.length+' 条内容');
+  }
+  else if (act === 'seed-demo'){
+    injectBaseline(); toast('历史事件已按内容数据重算'); render();
+  }
+  else if (act === 'clear-demo'){
+    if (!confirm('会清空全部内容和全部事件，清空后不可恢复。继续吗？')) return;
+    state.events = [];
+    state.items = [];
+    state.favs = {};
+    saveEvents(); saveItems(); saveFavs();
+    toast('已清空全部内容'); go('/'); render();
+  }
+});
+
+/* ---------- 搜索输入（保持焦点） ---------- */
+document.addEventListener('input', function(e){
+  if (e.target && e.target.id === 'q'){
+    ui.q = e.target.value;
+    var pos = e.target.selectionStart;
+    render();
+    var q = $('#q');
+    if (q){ q.focus(); try { q.setSelectionRange(pos, pos); } catch(err){} }
+  }
+});
+
+/* ---------- 图片 ---------- */
+document.addEventListener('change', function(e){
+  var inp = e.target;
+  if (!inp || inp.type !== 'file') return;
+  var f = inp.files && inp.files[0];
+  if (!f) return;
+  var idx = inp.getAttribute('data-i');
+  compress(f, function(dataUrl){
+    if (idx != null) draft.imgs[Number(idx)] = dataUrl;
+    else draft.imgs.push(dataUrl);
+    render();
+  });
+});
+
+function compress(file, cb){
+  var img = new Image();
+  var url = URL.createObjectURL(file);
+  img.onload = function(){
+    var max = 720, w = img.width, h = img.height;
+    if (w > h && w > max){ h = Math.round(h*max/w); w = max; }
+    else if (h >= w && h > max){ w = Math.round(w*max/h); h = max; }
+    var c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    c.getContext('2d').drawImage(img, 0, 0, w, h);
+    URL.revokeObjectURL(url);
+    cb(c.toDataURL('image/jpeg', 0.75));
+  };
+  img.onerror = function(){ URL.revokeObjectURL(url); toast('图片读取失败'); };
+  img.src = url;
+}
+
+/* ---------- 发布表单 ---------- */
+document.addEventListener('submit', function(e){
+  if (!e.target || e.target.id !== 'pub') return;
+  e.preventDefault();
+  var u = me();
+  if (!u){ needLogin('/publish'); return; }
+  var fd = new FormData(e.target);
+  var title = String(fd.get('title')||'').trim();
+  var desc = String(fd.get('desc')||'').trim();
+  if (title.length < 4){ toast('标题至少写 4 个字'); return; }
+  if (desc.length < 5){ toast('详情再写两句，方便别人判断'); return; }
+  var item = {
+    id: 'i_' + Date.now().toString(36),
+    type: draft.type, title: title, desc: desc,
+    price: String(fd.get('price')||'').trim(),
+    area: String(fd.get('area')||'').trim(),
+    contact: String(fd.get('contact')||'').trim(),
+    createdAt: Date.now(),
+    views: 0, contacts: 0, status: 'open',
+    author: u.nick, ownerId: u.id,
+    imgs: draft.imgs.slice()
+  };
+  state.items.push(item);
+  saveItems();
+  track('publish', item.id);
+  draft = { type:'lost', imgs:[] };
+  toast('发布成功');
+  go('/item/' + item.id);
+});
+
+/* ---------- 登录 / 注册 ---------- */
+document.addEventListener('submit', function(e){
+  if (!e.target || e.target.id !== 'auth') return;
+  e.preventDefault();
+  var fd = new FormData(e.target);
+  var nick = String(fd.get('nick')||'').trim();
+  var sid = String(fd.get('sid')||'').trim();
+  var pass = String(fd.get('pass')||'');
+  var pass2 = String(fd.get('pass2')||'');
+  var login = ui.authMode === 'login';
+
+  if (nick.length < 2){ toast('昵称至少 2 个字'); return; }
+  if (pass.length < 6){ toast('密码至少 6 位'); return; }
+
+  if (login){
+    var hit = null;
+    for (var i=0;i<state.users.length;i++){
+      if ((state.users[i].nick === nick || state.users[i].sid === nick) && state.users[i].pass === hash(pass)) hit = state.users[i];
+    }
+    if (!hit){ toast('昵称/学号或密码不对'); return; }
+    state.session = hit.id;
+    DB.set('session', hit.id);
+    track('login');
+    toast('欢迎回来，' + hit.nick);
+    var nx = ui.next || '/';
+    ui.next = '/';
+    go(nx); render();
+  } else {
+    if (!/^\d{8,12}$/.test(sid)){ toast('学号要填 8–12 位数字'); return; }
+    if (pass !== pass2){ toast('两次密码不一致'); return; }
+    for (var j=0;j<state.users.length;j++){
+      if (state.users[j].nick === nick){ toast('这个昵称已经有人用了'); return; }
+      if (state.users[j].sid === sid){ toast('这个学号已经注册过，直接登录就行'); return; }
+    }
+    var nu = { id:'u_'+Date.now().toString(36), nick:nick, sid:sid, pass:hash(pass), role:'user', createdAt:Date.now() };
+    state.users.push(nu);
+    saveUsers();
+    state.session = nu.id;
+    DB.set('session', nu.id);
+    track('register');
+    toast('注册成功，已登录');
+    var nx2 = ui.next || '/';
+    ui.next = '/';
+    go(nx2); render();
+  }
+});
+
+/* ---------- 启动 ---------- */
+window.addEventListener('hashchange', function(){ lastItemView = null; render(); window.scrollTo(0,0); });
+if (qs.get('seed') === '1') injectDemoEvents();
+else injectBaseline();
+track('view_home');
+render();
+
+})();
+</script>
+</body>
+</html>
