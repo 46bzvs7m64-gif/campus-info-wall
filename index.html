@@ -650,16 +650,18 @@ function viewItem(id){
       '<div class="who-row">' +
         '<span class="ava">'+esc(String(it.author || '匿').slice(0,1))+'</span>' +
         '<div class="who-main">' +
-          '<div class="who-name">'+esc(it.author || '匿名同学')+(mine ? '（我）' : '')+'<span class="ok">已认证</span></div>' +
-          '<div class="who-sub">学号 '+authorSid(it)+' · 本校学生</div>' +
+          '<div class="who-sub" style="margin-top:0">学号 '+authorSid(it)+' · 本校学生</div>' +
         '</div>' +
+        '<span class="ok">已认证</span>' +
       '</div>' +
+      '<div class="c-line">'+esc(it.author || '匿名同学')+(mine ? '（我）' : '')+'</div>' +
       (logged
         ? (it.contact
-            ? '<div class="c-line">'+esc(it.contact)+'</div>' +
-              '<button class="btn ghost sm" data-act="copy" data-v="'+esc(it.contact)+'">复制</button>'
-            : '<div class="c-line muted">对方没留联系方式，可以先在评论区问</div>')
-        : '<button class="btn" style="width:100%" data-act="needlogin">登录后查看联系方式</button>') +
+            ? '<div class="c-line muted">手机 '+esc(String(it.contact).replace(/^手机\s*/, ''))+'</div>' +
+              '<button class="btn ghost sm" data-act="copy" data-v="'+esc(it.contact)+'">复制手机号</button>'
+            : '<div class="c-line muted">对方没留联系方式，可以先在「我的」里留言问</div>')
+        : '<div class="c-line muted">账号已认证，登录后可见联系方式</div>' +
+          '<button class="btn" style="width:100%" data-act="needlogin">登录后查看联系方式</button>') +
     '</div>';
 
   var faved = isFav(it.id);
