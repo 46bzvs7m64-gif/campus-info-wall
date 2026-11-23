@@ -310,9 +310,117 @@ if (!state.users){
 if (!state.items){ state.items = seedItems(); DB.set('items', state.items); }
 
 function saveUsers(){ DB.set('users', state.users); }
-function saveItems(){ DB.set('items', state.items); }
-function saveFavs(){ DB.set('favs', state.favs); }
+function saveItems(){ DB.set('items', state.items); cloudPushItems(); }
+function saveFavs(){ DB.set('favs', state.favs); cloudPushFavs(); }
 function saveEvents(){ DB.set('events', state.events); }
+
+/* ============================================================
+ * 云端账号（可选）：页面旁边跑着 server/app.py 时自动启用
+ *  - 账号、我发的内容、我的收藏 都存在服务器上 → 换设备登录还是同一份数据
+ *  - 没有后端（比如直接在 GitHub Pages 打开）时自动退回本地存储，功能照旧
+ * ============================================================ */
+var CLOUD = { on:false, token:null };
+
+function cloudApi(method, path, body){
+  var opt = { method: method, headers: {} };
+  if (body !== undefined){ opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
+  if (CLOUD.token) opt.headers['Authorization'] = 'Bearer ' + CLOUD.token;
+  return fetch(path, opt).then(function(r){
+    return r.json().catch(function(){ return {}; }).then(function(j){
+      return { code: r.status, body: j };
+    });
+  });
+}
+
+function cloudUpsertUser(u){
+  if (!u || !u.id) return null;
+  for (var i=0;i<state.users.length;i++){
+    if (state.users[i].id === u.id){
+      state.users[i].nick = u.nick; state.users[i].sid = u.sid; state.users[i].role = u.role || 'user';
+      return state.users[i];
+    }
+  }
+  var nu = { id:u.id, nick:u.nick, sid:u.sid, pass:'', role:u.role || 'user', createdAt: Date.now(), cloud:true };
+  state.users.push(nu);
+  return nu;
+}
+
+/* 把服务器上「所有用户发布的内容」并进列表（种子内容仍来自本地） */
+function cloudMergeItems(list){
+  var seen = {};
+  for (var i=0;i<state.items.length;i++) seen[state.items[i].id] = 1;
+  var added = 0;
+  for (var j=0;j<list.length;j++){
+    var it = list[j];
+    if (!it || !it.id) continue;
+    if (seen[it.id]) continue;
+    seen[it.id] = 1;
+    state.items.push(it); added++;
+  }
+  if (added) DB.set('items', state.items);
+  return added;
+}
+
+function cloudPushItems(){
+  if (!CLOUD.on || !CLOUD.token) return;
+  var u = me();
+  if (!u) return;
+  var mine = state.items.filter(function(x){ return x.ownerId === u.id; });
+  cloudApi('PUT', '/api/me/items', { items: mine }).catch(function(){});
+}
+
+function cloudPushFavs(){
+  if (!CLOUD.on || !CLOUD.token) return;
+  var u = me();
+  if (!u) return;
+  cloudApi('PUT', '/api/me/favs', { favs: state.favs[u.id] || [] }).catch(function(){});
+}
+
+function cloudAfterLogin(token, user){
+  CLOUD.token = token;
+  DB.set('token', token);
+  var u = cloudUpsertUser(user);
+  state.session = u.id;
+  DB.set('session', u.id);
+  return cloudApi('GET', '/api/me').then(function(r){
+    if (r.code === 200 && r.body){
+      if (r.body.user) cloudUpsertUser(r.body.user);
+      cloudMergeItems(r.body.items || []);
+      state.favs[u.id] = r.body.favs || [];
+      saveFavs();
+    }
+    saveUsers();
+    return u;
+  });
+}
+
+function cloudBoot(){
+  var tok = DB.get('token', null);
+  fetch('/api/ping').then(function(r){ return r.json(); }).then(function(j){
+    if (!j || !j.ok) return;
+    CLOUD.on = true;
+    document.documentElement.setAttribute('data-cloud', '1');
+    var jobs = [ fetch('/api/feed').then(function(r){ return r.json(); }) ];
+    if (tok){
+      CLOUD.token = tok;
+      jobs.push(cloudApi('GET', '/api/me'));
+    }
+    Promise.all(jobs).then(function(res){
+      var feedRes = res[0] || {};
+      cloudMergeItems(feedRes.items || []);
+      var meRes = res[1];
+      if (meRes && meRes.code === 200 && meRes.body && meRes.body.user){
+        var u = cloudUpsertUser(meRes.body.user);
+        cloudMergeItems(meRes.body.items || []);
+        state.favs[u.id] = meRes.body.favs || [];
+        DB.set('favs', state.favs); saveUsers();
+      } else if (meRes && meRes.code === 401){
+        CLOUD.token = null; DB.set('token', null);
+      }
+      render();
+    });
+  }).catch(function(){ /* 没有后端：保持本地模式 */ });
+}
 
 /* ---------- 当前用户 ---------- */
 function me(){ 
@@ -842,7 +950,9 @@ function viewFavs(){
   return '<div class="hd"><div class="hd-in"><div class="ttl">我的收藏</div><div class="grow"></div>' +
       '<span class="hint" style="margin:0">'+list.length+' 条</span></div></div>' +
     '<div class="list">'+rows+'</div>' +
-    '<div class="hint" style="padding:0 16px 24px">收藏是账号级的：同一账号在这台设备上换浏览器标签页都还在；再点一次心就取消。</div>';
+    '<div class="hint" style="padding:0 16px 24px">' + (CLOUD.on
+        ? '收藏是账号级的：会存到服务器上，换设备用同一账号登录一样能看到；再点一次心就取消。'
+        : '收藏是账号级的：同一账号在这台设备上换浏览器标签页都还在；再点一次心就取消。') + '</div>';
 }
 
 function viewAuth(mode, tip){
@@ -865,7 +975,10 @@ function viewAuth(mode, tip){
         (login ? '' : '<div class="field"><label>确认密码</label><input name="pass2" type="password" maxlength="24" placeholder="再输一次"></div>') +
         '<button class="btn wide">'+(login?'登录':'注册并登录')+'</button>' +
       '</form>' +
-      '<div class="note">管理员账号：<b>admin</b> / <b>admin123</b>，登录后底部会多一个「数据」入口。<br>账号和内容都保存在本机浏览器里，换设备不同步。</div>' +
+      '<div class="note">管理员账号：<b>admin</b> / <b>admin123</b>，登录后底部会多一个「数据」入口。<br>' +
+        (CLOUD.on
+          ? '账号、发布内容和收藏都存在服务器上，<b>换设备登录同一账号能看到自己的全部内容</b>。'
+          : '当前是纯前端演示：账号和内容保存在本机浏览器里，换设备不同步。') + '</div>' +
     '</div></div>';
 }
 
@@ -1101,7 +1214,9 @@ document.addEventListener('click', function(e){
   else if (act === 'copy'){ copyText(el.getAttribute('data-v')); }
   else if (act === 'auth-mode'){ ui.authMode = el.getAttribute('data-v'); render(); }
   else if (act === 'logout'){
-    state.session = null; DB.set('session', null); ui.authMode = 'login'; track('logout');
+    state.session = null; DB.set('session', null); ui.authMode = 'login';
+    CLOUD.token = null; DB.set('token', null);
+    track('logout');
     toast('已退出'); go('/'); render();
   }
   else if (act === 'to-admin-login'){ ui.authMode='login'; ui.next='/admin'; go('/login'); }
@@ -1285,6 +1400,26 @@ document.addEventListener('submit', function(e){
   if (nick.length < 2){ toast('昵称至少 2 个字'); return; }
   if (pass.length < 6){ toast('密码至少 6 位'); return; }
 
+  if (CLOUD.on){
+    var path = login ? '/api/login' : '/api/register';
+    var payload = login ? { nick:nick, pass:pass } : { nick:nick, sid:sid, pass:pass };
+    cloudApi('POST', path, payload).then(function(r){
+      if (r.code !== 200){
+        toast((r.body && r.body.error) || '操作失败，请重试');
+        return;
+      }
+      cloudAfterLogin(r.body.token, r.body.user).then(function(u){
+        ui.authMode = 'login';
+        track(login ? 'login' : 'register');
+        toast(login ? ('欢迎回来，' + u.nick) : '注册成功，已登录');
+        var nx = ui.next || '/';
+        ui.next = '/';
+        go(nx); render();
+      });
+    });
+    return;
+  }
+
   if (login){
     var hit = null;
     for (var i=0;i<state.users.length;i++){
@@ -1326,6 +1461,7 @@ if (qs.get('seed') === '1') injectDemoEvents();
 else injectBaseline();
 track('view_home');
 render();
+cloudBoot();
 
 })();
 </script>
