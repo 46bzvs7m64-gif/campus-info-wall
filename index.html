@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#5B6CFF">
 <title>校园信息墙 · 失物招领 · 二手转让 · 拼单</title>
+<meta name="description" content="一个校园信息聚合 H5：学号注册、发布、收藏、拼单进度、管理员数据后台。零依赖单文件实现，全站埋点，四步转化漏斗。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="校园信息墙 · 失物招领 / 二手转让 / 拼单">
+<meta property="og:description" content="学号注册、发布、收藏、拼单进度、管理员数据后台。单个 H5 文件，零依赖。">
+<meta property="og:image" content="https://46bzvs7m64-gif.github.io/campus-info-wall/docs/home.png">
+<meta property="og:url" content="https://46bzvs7m64-gif.github.io/campus-info-wall/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232C6BE0'/%3E%3Cpath d='M9 12h14M9 16h14M9 20h9' stroke='%23fff' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
 <style>
   :root{
     --bg:#F1F2F4; --card:#fff; --ink:#1B1E23; --sub:#8B9099; --line:#EAECEF;
@@ -192,9 +200,50 @@
   .contact-box .c-line{margin-top:12px;font-size:16px;font-weight:600;color:var(--ink);letter-spacing:.4px}
   .contact-box .c-line.muted{font-size:12.5px;font-weight:400;color:#98A1B2}
   .contact-box .btn.ghost{margin-top:10px}
+
+  /* ---------- 桌面端外壳：让面试官在电脑上打开也像一个完整产品 ---------- */
+  .tour{display:none}
+  @media (min-width:760px){
+    body{background:#E6E9EE}
+    .app{box-shadow:0 0 0 1px #DDE1E7,0 14px 44px rgba(24,32,48,.07)}
+    .card:hover{background:#FAFBFC}
+  }
+  @media (min-width:1120px){
+    .tour{display:block;position:fixed;left:max(20px,calc(50% - 560px));top:92px;width:270px;
+      font-size:12.5px;line-height:1.75;color:#5B6472}
+    .tour h1{font-size:16px;font-weight:600;color:#1E2430;margin:0 0 6px;letter-spacing:.2px}
+    .tour .t-sub{color:#8A93A2;margin-bottom:16px}
+    .tour .t-h{font-size:11px;font-weight:600;color:#9AA2B0;letter-spacing:1px;margin:18px 0 8px}
+    .tour ol{margin:0;padding-left:16px}
+    .tour li{margin-bottom:7px}
+    .tour b{color:#1E2430;font-weight:600}
+    .tour a{color:#2C6BE0}
+    .tour .t-foot{margin-top:20px;padding-top:14px;border-top:1px solid #DDE1E7;color:#9AA2B0;font-size:11.5px;line-height:1.7}
+  }
 </style>
 </head>
 <body>
+<div class="tour">
+  <h1>校园信息墙</h1>
+  <div class="t-sub">失物招领 · 二手转让 · 拼单 ｜ 单个 H5 文件</div>
+  <div class="t-h">怎么看</div>
+  <ol>
+    <li>顶部 <b>四个板块</b> 切换，点任一卡片进详情</li>
+    <li>「拼单」那条有 <b>已拼进度条</b>，是这版新加的类型</li>
+    <li>详情页的联系方式<b>要登录才可见</b>，未登录会跳登录页</li>
+    <li>登录 <b>admin / admin123</b>，底部会多出「数据」</li>
+  </ol>
+  <div class="t-h">它在证明什么</div>
+  <ol>
+    <li>把「有人联系成功」定义成北极星，四步漏斗埋点贯穿全站</li>
+    <li>渠道用 <b>?ch=</b> 打标，能分清宿舍群 / 朋友圈 / 地推来的量</li>
+    <li>后台的 8 个指标和漏斗同源，不会互相打架</li>
+  </ol>
+  <div class="t-foot">
+    前端零依赖（原生 JS + localStorage），108 条真实场景内容。<br>
+    <a href="https://github.com/46bzvs7m64-gif/campus-info-wall" target="_blank" rel="noopener">查看源码与 README →</a>
+  </div>
+</div>
 <div class="app" id="app"></div>
 <div class="toast" id="toast"></div>
 
@@ -401,7 +450,7 @@ function seedItems(){
   var now = Date.now(), H = 3600e3, D = 86400e3;
   var base = [
     {id:'d1', type:'lost', title:'三教 302 丢了一把黑色雨伞，伞柄有小熊挂件', desc:'周三下午上完高数忘在教室了。伞是家里带的，不太值钱但用了很久。\n捡到的同学麻烦联系我，请你喝奶茶。', area:'三教 302', contact:'手机 13800372193', createdAt:now-3*H, views:42, contacts:5, status:'open', author:'匿名同学', ownerId:'demo1', seed:true, imgs:['img/umbrella.jpg']},
-    {id:'d2', type:'lost', title:'图书馆 4 楼捡到一张校园卡，姓名王**', desc:'卡面有一点点磨损，已经在图书馆一楼服务台登记了，也可以直接联系我。\n失主认领时说一下学号后四位。', area:'图书馆 4 楼', contact:'手机 13800380112', createdAt:now-8*H, views:76, contacts:11, status:'done', author:'李同学', ownerId:'demo2', seed:true, imgs:['img/card.jpg']},
+    {id:'d2', type:'lost', title:'图书馆 4 楼捡到一张学生证，姓名那栏被磨掉了', desc:'蓝色封面的学生证，捡起来的时候正躺在楼梯口的台阶上。\n信息我打码了，认得出自己的来图书馆一楼服务台领，或者直接联系我。', area:'图书馆 4 楼', contact:'手机 13800380112', createdAt:now-8*H, views:76, contacts:11, status:'done', author:'李同学', ownerId:'demo2', seed:true, imgs:['img/card.jpg']},
     {id:'d3', type:'lost', title:'找一只 AirPods 右耳，操场看台附近', desc:'晚上跑步的时候掉的，充电盒还在。如果有人捡到，重谢。', area:'操场看台', contact:'电话 138****6621', createdAt:now-1.2*D, views:33, contacts:2, status:'open', author:'匿名同学', ownerId:'demo3', seed:true, imgs:['img/airpods.jpg']},
     {id:'d4', type:'sell', title:'九成新自行车，毕业出，150', price:'150', desc:'骑了一年多，刹车和链条上个月刚保养过。送车锁和打气筒。\n南门自提，可以先来看车。', area:'南门', contact:'手机 13800388031', createdAt:now-5*H, views:128, contacts:19, status:'open', author:'张同学', ownerId:'demo4', seed:true, imgs:['img/bike.jpg']},
     {id:'d5', type:'sell', title:'考研英语真题 + 专业课资料，30 打包', price:'30', desc:'书上有少量笔记，不影响看。图书馆门口自取，太重了不想搬。', area:'东区宿舍', contact:'手机 13800395950', createdAt:now-30*H, views:64, contacts:8, status:'done', author:'陈同学', ownerId:'demo5', seed:true, imgs:['img/books.jpg']},
@@ -1052,7 +1101,7 @@ document.addEventListener('click', function(e){
   else if (act === 'copy'){ copyText(el.getAttribute('data-v')); }
   else if (act === 'auth-mode'){ ui.authMode = el.getAttribute('data-v'); render(); }
   else if (act === 'logout'){
-    state.session = null; DB.set('session', null); track('logout');
+    state.session = null; DB.set('session', null); ui.authMode = 'login'; track('logout');
     toast('已退出'); go('/'); render();
   }
   else if (act === 'to-admin-login'){ ui.authMode='login'; ui.next='/admin'; go('/login'); }
@@ -1244,6 +1293,7 @@ document.addEventListener('submit', function(e){
     if (!hit){ toast('昵称/学号或密码不对'); return; }
     state.session = hit.id;
     DB.set('session', hit.id);
+    ui.authMode = 'login';
     track('login');
     toast('欢迎回来，' + hit.nick);
     var nx = ui.next || '/';
@@ -1261,6 +1311,7 @@ document.addEventListener('submit', function(e){
     saveUsers();
     state.session = nu.id;
     DB.set('session', nu.id);
+    ui.authMode = 'login';
     track('register');
     toast('注册成功，已登录');
     var nx2 = ui.next || '/';
